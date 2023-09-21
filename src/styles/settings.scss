@@ -1,0 +1,24 @@
+/**
+ * src/styles/settings.scss
+ *
+ * Configures SASS variables and Vuetify overwrites
+ */
+
+// https://vuetifyjs.com/features/sass-variables/`
+// @use 'vuetify/settings' with (
+//   $color-pack: false
+// );
+
+@import url('https://fonts.googleapis.com/css2?family=Borel&family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+.font-nistra {
+    font-family: 'Borel', serif !important;
+}
+
+.font-quicksand {
+    font-family: 'Quicksand', sans-serif !important;
+}
+
+.v-container {
+    max-width: 1400px;
+}
