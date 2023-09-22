@@ -35,16 +35,18 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-      - name: Write envs
-        run:  |
-          echo "${{secrets.VITE_SUPABASE_URL }}" > .env
-          echo "${{secrets.VITE_SUPABASE_ANON_KEY }}" > .env
       - name: Install dependencies
         run: npm install
+      - name: Write envs
+        run:  |
+          echo "${{ secrets.VITE_SUPABASE_URL }}" > .env
+          echo "${{ secrets.VITE_SUPABASE_ANON_KEY }}" > .env
       - name: Print envs
         run: |
-          echo "Variable 1: ${{ env.VITE_SUPABASE_URL }}"
-          echo "Variable 2: ${{ env.VITE_SUPABASE_ANON_KEY }}"
+          echo "Variable 1: ${{ secrets.VITE_SUPABASE_URL }}"
+          echo "Variable 2: ${{ secrets.VITE_SUPABASE_ANON_KEY }}"
+      - name: List directory
+        run: ls -R
       - name: Build
         run: npm run build
       - name: Setup Pages
