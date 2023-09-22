@@ -39,8 +39,8 @@ jobs:
         run: npm install
       - name: Write envs
         run:  |
-          echo "${{ secrets.VITE_SUPABASE_URL }}" > .env
-          echo "${{ secrets.VITE_SUPABASE_ANON_KEY }}" > .env
+          echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" > .env
+          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" > .env
       - name: Print envs
         run: |
           echo "Variable 1: ${{ secrets.VITE_SUPABASE_URL }}"
