@@ -1,32 +1,24 @@
 <template>
-  <Suspense>
-    <!-- component with nested async dependencies -->
-    <v-container>
-      <PageTitle :back="true" :title="`${getMemberDataByFieldNameIntern('FIRST_NAME')} ${getMemberDataByFieldNameIntern('LAST_NAME')}`" />
+  <v-container>
+    <PageTitle :back="true" :title="`${getMemberDataByFieldNameIntern('FIRST_NAME')} ${getMemberDataByFieldNameIntern('LAST_NAME')}`" />
 
-      <v-col>
-        <v-row justify="start" v-for="(category, i) in categories">
-          <v-card class="my-2" width="100%">
-            <v-card-item>
-              <v-card-title>
-                {{ category.name }}
-              </v-card-title>
-            </v-card-item>
-            <v-card-text>
-              <div v-for="(field, k) in fieldsByCategory(category.id)" :key="`${i}-${field.id}`">
-                {{ field.name }}: {{ getMemberDataByFieldID(field.id) }}
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-row>
-      </v-col>
-    </v-container>
-
-    <!-- loading state via #fallback slot -->
-    <template #fallback>
-      Loading...
-    </template>
-  </Suspense>
+    <v-col>
+      <v-row justify="start" v-for="(category, i) in categories">
+        <v-card class="my-2" width="100%">
+          <v-card-item>
+            <v-card-title>
+              {{ category.name }}
+            </v-card-title>
+          </v-card-item>
+          <v-card-text>
+            <div v-for="(field, k) in fieldsByCategory(category.id)" :key="`${i}-${field.id}`">
+              {{ field.name }}: {{ getMemberDataByFieldID(field.id) }}
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-row>
+    </v-col>
+  </v-container>
 </template>
 
 <script setup>
@@ -49,10 +41,10 @@ const fields = ref([])
 
 const fetchData = async() => {
   loading.value = true
-  const promise1 = await supabase
-    .from('member_fields')
-    .select('id, category_id, type, name_intern, name')
-    .eq('org_id', 1) // TODO: organization
+  console.log("Fetching synchronously...")
+
+  // fetch all member fields
+  const promise1 = supabase.from('member_fields').select('id, category_id, type, name_intern, name').neq('type', 'PLACEHOLDER')
     .then(({ data, error, status }) => {
       if (error && status !== 406) throw error
       if(data) {
@@ -62,33 +54,24 @@ const fetchData = async() => {
     .catch((error) => {
       toast.error(error.message)
     })
-    .finally(() =>{
-      loading.value = false
-    })
-  const promise2 = supabase
-    .from('categories')
-    .select('id, uuid, name, name_intern')
-    .eq('org_id', 1) // TODO: organization
+
+  // fetch all categories
+  const promise2 = supabase.from('categories').select('id, uuid, name, name_intern')
     .then(({ data, error, status }) => {
       if (error && status !== 406) throw error
-
       if(data) {
         categories.value = data
       }
     })
     .catch((error) => {
+      console.error(error)
       toast.error(error.message)
     })
-    .finally(() =>{
-      loading.value = false
-    })
-  const promise3 = supabase
-    .from('members_data')
-    .select('*')
-    .eq('member_id', $route.params.id)
+
+  // fetch all member data of member
+  const promise3 = supabase.from('members_data').select('*').eq('member_id', $route.params.id)
     .then(({ data, error, status }) => {
       if (error && status !== 406) throw error
-
       if(data) {
         member.value = data
       }
@@ -96,17 +79,14 @@ const fetchData = async() => {
     .catch((error) => {
       toast.error(error.message)
     })
-    .finally(() =>{
-      loading.value = false
-    })
 
   Promise.all([promise1, promise2, promise3]).then((values) => {
+    console.log(categories.value)
     loading.value = false
-    return
   })
 }
 
-await fetchData()
+fetchData()
 
 const fieldsByCategory = (category_id) => {
   return fields.value.filter(el => el.category_id === category_id)

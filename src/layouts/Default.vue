@@ -102,11 +102,11 @@
     </v-navigation-drawer>
 
     <v-main>
+      <router-view />
+      <!--
       <Suspense>
-        <!-- component with nested async dependencies -->
         <router-view />
 
-        <!-- loading state via #fallback slot -->
         <template #fallback>
           <v-container class="fill-height">
             <v-responsive class="align-center text-center fill-height">
@@ -115,6 +115,7 @@
           </v-container>
         </template>
       </Suspense>
+      -->
     </v-main>
   </v-app>
 </template>

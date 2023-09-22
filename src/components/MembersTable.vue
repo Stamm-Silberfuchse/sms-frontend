@@ -3,37 +3,119 @@
     v-model="selected"
     :headers="headers"
     :items="members"
+    :search="search"
     item-value="name"
     show-select
     class="elevation-1"
+    v-model:sort-by="sortBy"
     :loading="loading"
-  ></v-data-table>
+  >
+
+    <template v-slot:top>
+      <v-toolbar class="px-4">
+        <v-chip
+          variant="elevated"
+          :color="meute ? 'orange' : 'orange-lighten-4'"
+          class="mr-2"
+          @click="meute = !meute"
+        >
+          Meute
+        </v-chip>
+        <v-chip
+          variant="elevated"
+          :color="sippe ? 'blue-darken-4' : 'blue-lighten-4'"
+          class="mr-2"
+          @click="sippe = !sippe"
+        >
+          Sippe
+        </v-chip>
+        <v-chip
+          variant="elevated"
+          :color="rover ? 'red-darken-4' : 'red-lighten-4'"
+          class="mr-2"
+          @click="rover = !rover"
+        >
+          Rover
+        </v-chip>
+        <v-spacer />
+        <v-text-field
+          v-model="search"
+          density="compact"
+          label="Suche"
+          single-line
+          hide-details
+        ></v-text-field>
+      </v-toolbar>
+    </template>
+
+    <template v-slot:item.id="{ item }">
+      <v-chip>
+        M{{ item.columns.id }}
+      </v-chip>
+    </template>
+
+    <template v-slot:item.actions="{ item }">
+      <v-icon
+        size="small"
+        class="me-2"
+        @click="viewMember(item.raw.id)"
+      >
+        mdi-eye
+      </v-icon>
+      <v-icon
+        size="small"
+        class="me-2"
+        @click="editMember(item.raw.id)"
+      >
+        mdi-pencil
+      </v-icon>
+    </template>
+
+    <template v-slot:no-data>
+        Keine Daten vorhanden
+    </template>
+  </v-data-table>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { supabase } from '@/plugins/supabase'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
 const $route = useRoute()
+const $router = useRouter()
 
 const loading = ref(false)
 
-const headers = ref([])
+const headers = ref([
+  { title: 'M-Nr.', key: 'id' },
+  { title: 'Nachname', key: 'LAST_NAME' },
+  { title: 'Vorname', key: 'FIRST_NAME' },
+  { title: 'Adresse', key: 'ADDRESS' },
+  { title: 'PLZ', key: 'ZIP_CODE' },
+  { title: 'Ort', key: 'CITY' },
+  { title: '', key: 'actions', sortable: false, align: 'end' },
+])
+const selected = ref([])
+const sortBy = ref([{ key: 'LAST_NAME', order: 'asc' }])
 
 const members = ref([])
 const members_general_fields = ref([])
 
+const meute = ref(false)
+const sippe = ref(false)
+const rover = ref(false)
 
-const fetchData = async() => {
+const search = ref('')
+
+const fetchData = async () => {
   loading.value = true
-  console.log("Fetching...")
+  console.log("Fetching asynchronously...")
 
-  await supabase
-    .from('members')
-    .select('*')
+  // fetch all members
+  await supabase.from('members').select('*').eq('archived', false)
     .then(async ({ data, error, status }) => {
       if (error && status !== 406) throw error
       if(data) {
@@ -43,167 +125,54 @@ const fetchData = async() => {
     .catch((error) => {
       toast.error(error.message)
     })
-    .finally(() =>{
-      return
-      loading.value = false
-    })
 
-  await supabase
-    .from('member_fields')
-    .select('*')
-    .eq('org_id', 1) // TODO: organization
-    .eq('category_id', 1) // only grab BASIC_DATA
+  // fetch all member fields of category BASIC_DATA
+  let member_fields = []
+  await supabase.from('member_fields').select('*').eq('category_id', 1).neq('type', 'PLACEHOLDER')
     .then(async ({ data, error, status }) => {
       if (error && status !== 406) throw error
+      console.log(status, error, data)
       if(data) {
         members_general_fields.value = data
-        const member_fields = data.map(el => el.id)
-        console.log(members_general_fields.value)
-        members_general_fields.value.forEach((el) => {
-          headers.value.push({
-            title: el.name,
-            key: el.name_intern,
-          })
-        })
-        await supabase
-          .from('members_data')
-          .select('*')
-          .in('member_field_id', member_fields) // only grab BASIC_DATA
-          .then(async ({ data, error, status }) => {
-            if (error && status !== 406) throw error
-            if(data) {
-              data.forEach((el) => {
-                const member_index = members?.value?.findIndex((member) => member.id === el.member_id)
-                if(member_index !== -1) {
-                  const field_index = members_general_fields?.value?.findIndex((field) => field.id === el.member_field_id)
-                  if(field_index !== -1) {
-                    members.value[member_index][members_general_fields.value[field_index].name_intern] = el.value
-                  }
-                }
-              })
-            }
-          })
-          .catch((error) => {
-            toast.error(error.message)
-          })
-          .finally(() =>{
-            loading.value = false
-          })
+        member_fields = data.map(el => el.id)
+        console.log(member_fields)
       }
     })
     .catch((error) => {
+      console.error(error)
       toast.error(error.message)
     })
-    .finally(() =>{
-      loading.value = false
-    })
+
+    // fetch all member data of category BASIC_DATA
+    await supabase.from('members_data').select('*').in('member_field_id', member_fields)
+      .then(async ({ data, error, status }) => {
+        if (error && status !== 406) throw error
+        if(data) {
+          data.forEach((el) => {
+            const member_index = members?.value?.findIndex((member) => member.id === el.member_id)
+            if(member_index !== -1) {
+              const field_index = members_general_fields?.value?.findIndex((field) => field.id === el.member_field_id)
+              if(field_index !== -1) {
+                members.value[member_index][members_general_fields.value[field_index].name_intern] = el.value
+              }
+            }
+          })
+          loading.value = false
+        }
+      })
+      .catch((error) => {
+        toast.error(error.message)
+      })
 }
 
-await fetchData()
+fetchData()
 
-</script>
+const viewMember = (id) => {
+  $router.push('/members/member/' + id)
+}
 
-<script>
-  export default {
-    data () {
-      return {
-        selected: [],
-        headers: [
-          {
-            title: 'Dessert (100g serving)',
-            align: 'start',
-            sortable: false,
-            key: 'name',
-          },
-          { title: 'Calories', key: 'calories' },
-          { title: 'Fat (g)', key: 'fat' },
-          { title: 'Carbs (g)', key: 'carbs' },
-          { title: 'Protein (g)', key: 'protein' },
-          { title: 'Iron (%)', key: 'iron' },
-        ],
-        desserts: [
-          {
-            name: 'Frozen Yogurt',
-            calories: 159,
-            fat: 6.0,
-            carbs: 24,
-            protein: 4.0,
-            iron: 1,
-          },
-          {
-            name: 'Ice cream sandwich',
-            calories: 237,
-            fat: 9.0,
-            carbs: 37,
-            protein: 4.3,
-            iron: 1,
-          },
-          {
-            name: 'Eclair',
-            calories: 262,
-            fat: 16.0,
-            carbs: 23,
-            protein: 6.0,
-            iron: 7,
-          },
-          {
-            name: 'Cupcake',
-            calories: 305,
-            fat: 3.7,
-            carbs: 67,
-            protein: 4.3,
-            iron: 8,
-          },
-          {
-            name: 'Gingerbread',
-            calories: 356,
-            fat: 16.0,
-            carbs: 49,
-            protein: 3.9,
-            iron: 16,
-          },
-          {
-            name: 'Jelly bean',
-            calories: 375,
-            fat: 0.0,
-            carbs: 94,
-            protein: 0.0,
-            iron: 0,
-          },
-          {
-            name: 'Lollipop',
-            calories: 392,
-            fat: 0.2,
-            carbs: 98,
-            protein: 0,
-            iron: 2,
-          },
-          {
-            name: 'Honeycomb',
-            calories: 408,
-            fat: 3.2,
-            carbs: 87,
-            protein: 6.5,
-            iron: 45,
-          },
-          {
-            name: 'Donut',
-            calories: 452,
-            fat: 25.0,
-            carbs: 51,
-            protein: 4.9,
-            iron: 22,
-          },
-          {
-            name: 'KitKat',
-            calories: 518,
-            fat: 26.0,
-            carbs: 65,
-            protein: 7,
-            iron: 6,
-          },
-        ],
-      }
-    },
-  }
+const editMember = (id) => {
+  $router.push('/members/member/' + id + '/edit')
+}
+
 </script>

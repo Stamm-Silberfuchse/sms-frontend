@@ -27,7 +27,7 @@
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
-        <v-btn variant="text" class="text-none">
+        <v-btn variant="text" class="text-none" @click="showDialog = false">
           Abbrechen
         </v-btn>
         <v-spacer></v-spacer>
@@ -73,24 +73,20 @@ const showDialog  = computed({
 
 const createMember = async () => {
   const user = await getUser()
-  console.log(((new Date()).toISOString()).toLocaleString('de-DE'))
-  console.log(moment(begin.value, "DD-MM-YYYY").format("YYYY-MM-DD"))
-  supabase
-    .from('members')
-    .insert([
+
+  let member_id = null
+  await supabase.from('members').insert([
       {
         usr_id_create: user.id,
-        timestamp_create: ((new Date()).toISOString()).toLocaleString('de-DE'),
+        // timestamp_create: ((new Date()).toISOString()).toLocaleString('de-DE'),
         begin: moment(begin.value, "DD-MM-YYYY").format("YYYY-MM-DD")
       },
     ])
+    .select()
     .then(({ data, error, status }) => {
       if (error && status !== 406) throw error
-
       if(data) {
-        console.log(data)
-        toast.success("Mitglied angelegt.")
-        router.push('/members/member/' + data[0].id + '/edit')
+        member_id = data[0].id
       }
     })
     .catch((error) => {
@@ -98,8 +94,31 @@ const createMember = async () => {
       toast.error(error.message)
     })
 
-
-
+  await supabase.from('members_data').insert([
+      {
+        member_id: member_id,
+        member_field_id: 1,
+        value: surname.value
+      },
+      {
+        member_id: member_id,
+        member_field_id: 2,
+        value: name.value
+      },
+    ])
+    .then(({ error, status }) => {
+      if (error && status !== 406) throw error
+      console.log(status)
+      if(status === 201) {
+        emit('update:modelValue', false )
+        toast.success("Mitglied angelegt.")
+        router.push('/members/member/' + member_id + '/edit')
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+      toast.error(error.message)
+    })
 }
 
 </script>
