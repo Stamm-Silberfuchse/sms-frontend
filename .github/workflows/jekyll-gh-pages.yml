@@ -41,11 +41,6 @@ jobs:
           echo "${{secrets.VITE_SUPABASE_ANON_KEY }}" > .env
       - name: Install dependencies
         run: npm install
-      - name: Load environment variables
-        uses: xom9ikk/dotenv@v2
-        with:
-          path: .env
-          mode: development
       - name: Print envs
         run: |
           echo "Variable 1: ${{ env.VITE_SUPABASE_URL }}"
