@@ -46,7 +46,7 @@ jobs:
           echo "Variable 1: ${{ secrets.VITE_SUPABASE_URL }}"
           echo "Variable 2: ${{ secrets.VITE_SUPABASE_ANON_KEY }}"
       - name: List directory
-        run: ls -R
+        run: ls -aR
       - name: Build
         run: npm run build
       - name: Setup Pages
