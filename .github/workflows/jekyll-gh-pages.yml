@@ -37,6 +37,10 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm install
+      - name: Load environment variables
+        uses: dotenv-actions/setup-dotenv@v2
+        with:
+          dotenv_path: .env
       - name: Build
         run: npm run build
       - name: Setup Pages
