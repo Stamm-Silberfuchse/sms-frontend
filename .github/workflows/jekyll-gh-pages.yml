@@ -42,7 +42,6 @@ jobs:
         with:
           path: .env
           mode: development
-          load-mode: strict
       - name: Print envs
         run: |
           echo "Variable 1: ${{ env.VITE_SUPABASE_URL }}"
