@@ -62,11 +62,14 @@
 
 <script setup>
 import { computed, ref, toRaw } from 'vue'
-import { supabase } from '@/plugins/supabase'
+import { useRouter } from 'vue-router'
+import { supabase, getUser } from '@/plugins/supabase'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
 import PageTitle from '@/components/PageTitle.vue'
+
+const router = useRouter()
 
 const recipients = ref([])
 const individualRecipients = ref([])
@@ -95,20 +98,16 @@ const showIndividualRecipients = computed(() => {
 })
 
 const saveMail = async () => {
-  console.log({
-    status: 0,
-    recipients: recipients.value,
-    subject: subject.value,
-    body: body.value,
-  })
+  const user = await getUser()
   supabase
     .from('emails')
     .insert([
       {
-        status: 0,
+        status: 1,
         recipients: recipients.value,
         subject: subject.value,
         body: body.value,
+        author: user.id
       },
     ])
     .select()
@@ -117,14 +116,12 @@ const saveMail = async () => {
 
       if(data) {
         toast.success("Entwurf gespeichert.")
+        router.push('/mails/edit/' + data[0].id)
       }
     })
     .catch((error) => {
       console.log(error)
       toast.error(error.message)
     })
-
-
-
 }
 </script>

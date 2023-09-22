@@ -5,6 +5,10 @@
 
       <v-app-bar-title class="font-nistra appbar-title">SMS</v-app-bar-title>
 
+      <v-btn @click="switchLoading">
+        <v-icon :color="app.globalLoading ? 'primary' : 'grey-lighten-1'">mdi-bell</v-icon>
+      </v-btn>
+
       <template v-slot:append>
         <v-switch
           v-model="darkMode"
@@ -48,7 +52,7 @@
               <v-list-item
                 v-bind="props"
                 :title="item.title"
-                class="mb-0"
+                class="mb-0 py-2"
               >
                 <template v-slot:prepend>
                   <v-icon>{{ item.icon }}</v-icon>
@@ -97,8 +101,20 @@
       -->
     </v-navigation-drawer>
 
-    <v-main class="bg-grey-lighten-2">
-      <router-view />
+    <v-main>
+      <Suspense>
+        <!-- component with nested async dependencies -->
+        <router-view />
+
+        <!-- loading state via #fallback slot -->
+        <template #fallback>
+          <v-container class="fill-height">
+            <v-responsive class="align-center text-center fill-height">
+              <v-progress-circular indeterminate color="primary" />
+            </v-responsive>
+          </v-container>
+        </template>
+      </Suspense>
     </v-main>
   </v-app>
 </template>
@@ -109,6 +125,7 @@
   import { useTheme } from 'vuetify'
   import { signOut } from '@/plugins/supabase'
   import { useCookies } from "vue3-cookies"
+  import { useAppStore } from '@/store/app'
 
   import { useUserStore } from '@/store/user'
 
@@ -119,6 +136,7 @@
 
   const router = useRouter()
 
+  const app = useAppStore()
   const user = useUserStore()
 
   const drawer = ref(true)
@@ -138,6 +156,10 @@
     darkMode.value = !darkMode.value
     theme.global.name.value = darkMode.value ? 'darkTheme' : 'lightTheme'
     cookies.set('themeMode', theme.global.name.value)
+  }
+
+  const switchLoading = () => {
+    app.setGlobalLoading(!app.globalLoading)
   }
 </script>
 

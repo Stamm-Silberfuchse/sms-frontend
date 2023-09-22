@@ -53,6 +53,18 @@ const routes = [
         name: 'Mail verfassen',
         component: () => import('@/views/mails/Compose.vue'),
       },
+      {
+        path: 'edit',
+        name: 'Mail bearbeiten',
+        redirect: '/mails',
+        children: [
+          {
+            path: ':id',
+            name: 'Mail bearbeiten',
+            component: () => import('@/views/mails/Edit.vue', { props: true }),
+          }
+        ]
+      },
     ],
   },
   {
@@ -105,7 +117,30 @@ const routes = [
       {
         path: '',
         name: 'Mietgliederverwaltung',
-        component: () => import('@/views/Members.vue'),
+        component: () => import('@/views/members/Main.vue'),
+      },
+      {
+        path: 'member',
+        name: 'REDIRECT',
+        redirect: '/members',
+        children: [
+          {
+            path: ':id',
+            name: 'Mitglied',
+            children: [
+              {
+                path: '',
+                name: 'Mitglied ansehen',
+                component: () => import('@/views/members/member/View.vue', { props: true }),
+              },
+              {
+                path: 'edit',
+                name: 'Mitglied bearbeiten',
+                component: () => import('@/views/members/member/Edit.vue', { props: true }),
+              },
+            ],
+          },
+        ]
       },
     ],
   },
@@ -117,9 +152,8 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from) => {
-
-  const { data, error } = await supabase.auth.getSession()
-  if (!data && (to.path !== '/login' && to.path !== '/register')) {
+  const { data: { session }, error } = await supabase.auth.getSession()
+  if (!session && (to.path !== '/login' && to.path !== '/register')) {
     return {
       path: '/login',
       query: {

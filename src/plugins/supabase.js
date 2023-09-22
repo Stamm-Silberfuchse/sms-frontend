@@ -1,6 +1,7 @@
-import { useUserStore } from '@/store/user';
+import { useUserStore } from '@/store/user'
 import { createClient } from '@supabase/supabase-js'
-import { toast } from 'vue3-toastify';
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
