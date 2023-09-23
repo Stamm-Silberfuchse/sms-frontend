@@ -11,20 +11,51 @@
             </v-card-title>
           </v-card-item>
           <v-card-text>
-            <div v-for="(field, k) in fieldsByCategory(category.id)" :key="`${i}-${field.id}`">
-              <v-text-field
-                v-if="field.type === 'TEXT'"
-                :label="field.name"
-                v-model="formData[category.name_intern][field.name_intern]"
-              ></v-text-field>
+            <div v-for="(field, k) in formDataFieldsByCategory(category.id)" :key="`${i}-${field.id}`">
               <v-checkbox
-                v-else-if="field.type === 'BOOL'"
-                :label="field.name"
-                v-model="formData[category.name_intern][field.name_intern]"
+                v-if="field.type === 'BOOL'"
+                :label="field.label"
+                v-model="formData[category.id]['fields'][field.id]['value']"
+                @update:model-value="updateValue($event, field)"
               ></v-checkbox>
+              <v-select
+                v-else-if="field.type === 'GENDER'"
+                :label="field.label"
+                :items="genderOptions"
+                item-title="text"
+                item-value="value"
+                chips
+                v-model="formData[category.id]['fields'][field.id]['value']"
+                @update:model-value="updateValue($event, field)"
+              ></v-select>
+              <v-text-field
+                v-else
+                :label="field.label"
+                :type="getTextFieldType(field.type)"
+                v-model="formData[category.id]['fields'][field.id]['value']"
+                @update:model-value="updateValue($event, field)"
+              ></v-text-field>
+              <!--
+              <InputField
+                :type="field.type"
+                :label="field.label"
+                :model="formData[category.id].fields[field.id]['value']"
+                :nameIntern="formData[category.id].fields[field.id].name_intern"
+              />
+              -->
             </div>
           </v-card-text>
         </v-card>
+      </v-row>
+      <v-row class="mt-8" justify="center">
+        <v-btn
+          color="primary"
+          prependIcon="mdi-content-save"
+          class="mb-4 text-none"
+          @click="saveMember"
+        >
+          Speichern
+        </v-btn>
       </v-row>
     </v-col>
   </v-container>
@@ -37,8 +68,8 @@ import { useRoute } from 'vue-router'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
-import MembersTable from '@/components/MembersTable.vue'
 import PageTitle from '@/components/PageTitle.vue'
+import InputField from '@/components/members/input-fields/InputField.vue'
 
 const $route = useRoute()
 
@@ -49,6 +80,27 @@ const categories = ref([])
 const fields = ref([])
 
 const formData = ref({})
+
+let updatedValues = {}
+
+const genderOptions = [
+  {
+    text: 'Männlich',
+    value: 'M'
+  },
+  {
+    text: 'Weiblich',
+    value: 'W'
+  },
+  {
+    text: 'Divers',
+    value: 'D'
+  },
+  {
+    text: 'Keine Angabe',
+    value: '-'
+  }
+]
 
 const fetchData = async() => {
   loading.value = true
@@ -61,7 +113,12 @@ const fetchData = async() => {
       if(data) {
         categories.value = data
         data.forEach((el) => {
-          formData.value[el.name_intern] = {}
+          formData.value[el.id] = {
+            uuid: el.uuid,
+            name: el.name,
+            name_intern: el.name_intern,
+            fields: {}
+          }
         })
       }
     })
@@ -78,46 +135,59 @@ const fetchData = async() => {
       if(data) {
         fields.value = data
         data.forEach((el) => {
-          const cat = categories.value.find((c) => c.id === el.category_id)?.name_intern
           let initial_value = ''
+          // TODO: convert to matching type
           if(el.type === 'BOOL') {
             initial_value = false
           }
-          formData.value[cat][el.name_intern] = initial_value
+          formData.value[el?.cat_id]["fields"][el?.id] = {
+            value: initial_value,
+            type: el.type,
+            label: el.name,
+            members_data_id: null,
+            field_name_intern: el.name_intern
+          }
         })
       }
     })
     .catch((error) => {
       toast.error(error.message)
     })
+
 
   // fetch all members_data of member
   await supabase.from('members_data').select('*').eq('member_id', $route.params.id)
     .then(({ data, error, status }) => {
       if (error && status !== 406) throw error
       if(data) {
-        console.log(data)
+        member.value = data
         data.forEach((el) => {
-          const field = fields.value.find((f) => f.id === el.member_field_id)
-          const cat = categories.value.find((c) => c.id === field.category_id)?.name_intern
+          const cat = fields.value.find(field => field.id === el.member_field_id)
           let value = el.value
-          if(field.type === 'BOOL') {
+          // TODO: convert to matching type
+          if(cat.type === 'BOOL') {
             value = JSON.parse(el.value)
           }
-          formData.value[cat][field.name_intern] = value
+          formData.value[cat?.cat_id].fields[el.member_field_id].value = value
+          formData.value[cat?.cat_id].fields[el.member_field_id].members_data_id = el.id
         })
-        member.value = data
       }
     })
     .catch((error) => {
       toast.error(error.message)
     })
+  loading.value = false
 }
 
 fetchData()
 
-const fieldsByCategory = (category_id) => {
-  return fields.value.filter(el => el.category_id === category_id)
+const fieldsByCategory = (cat_id) => {
+  return fields.value.filter(el => el.cat_id === cat_id)
+}
+
+const formDataFieldsByCategory = (cat_id) => {
+  return Object.keys(formData.value[cat_id]?.fields)
+    .map(id => ({ id, ...formData.value[cat_id]?.fields[id] }))
 }
 
 const getMemberDataByFieldID = (field_id) => {
@@ -130,7 +200,56 @@ const getMemberDataByFieldNameIntern = (name_intern) => {
   return data ? data : '...'
 }
 
-const goToSettings = () => {
-  toast.info('Not implemented yet')
+const getTextFieldType = (type) => {
+  switch(type) {
+    case 'EMAIL':
+      return 'email'
+    case 'PHONE':
+      return 'tel'
+    case 'DATE':
+      return 'date'
+    case 'URL':
+      return 'url'
+    default:
+      return 'text'
+  }
 }
+
+const updateValue = (value, field) => {
+  updatedValues[field.id] = {
+    member_id: parseInt($route.params.id),
+    member_field_id: parseInt(field.id),
+    value: value,
+  }
+  if(field.members_data_id) {
+    updatedValues[field.id].id = field.members_data_id
+  }
+}
+
+const saveMember = async () => {
+  loading.value = true
+  console.log(Object.values(updatedValues))
+  await supabase.from('members_data')
+    .upsert(
+      Object.values(updatedValues)
+    )
+    .select()
+    .then(({ data, error, status }) => {
+      if (error && status !== 406) throw error
+      if(data) {
+        updatedValues = {}
+        const len = data.length
+        let message = data.length + " Änderung"
+        if(len > 1) { message += "en" }
+        message += " gespeichert"
+        toast.success(message)
+        loading.value = false
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+      toast.error(error.message)
+    })
+}
+
 </script>

@@ -44,7 +44,7 @@ const fetchData = async() => {
   console.log("Fetching synchronously...")
 
   // fetch all member fields
-  const promise1 = supabase.from('member_fields').select('id, category_id, type, name_intern, name').neq('type', 'PLACEHOLDER')
+  const promise1 = supabase.from('member_fields').select('id, cat_id, type, name_intern, name').neq('type', 'PLACEHOLDER')
     .then(({ data, error, status }) => {
       if (error && status !== 406) throw error
       if(data) {
@@ -88,8 +88,8 @@ const fetchData = async() => {
 
 fetchData()
 
-const fieldsByCategory = (category_id) => {
-  return fields.value.filter(el => el.category_id === category_id)
+const fieldsByCategory = (cat_id) => {
+  return fields.value.filter(el => el.cat_id === cat_id)
 }
 
 const getMemberDataByFieldID = (field_id) => {

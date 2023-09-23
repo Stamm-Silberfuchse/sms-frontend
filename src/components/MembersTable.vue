@@ -123,19 +123,18 @@ const fetchData = async () => {
       }
     })
     .catch((error) => {
+      console.error(error)
       toast.error(error.message)
     })
 
   // fetch all member fields of category BASIC_DATA
   let member_fields = []
-  await supabase.from('member_fields').select('*').eq('category_id', 1).neq('type', 'PLACEHOLDER')
+  await supabase.from('member_fields').select('*').eq('cat_id', 1).neq('type', 'PLACEHOLDER')
     .then(async ({ data, error, status }) => {
       if (error && status !== 406) throw error
-      console.log(status, error, data)
       if(data) {
         members_general_fields.value = data
         member_fields = data.map(el => el.id)
-        console.log(member_fields)
       }
     })
     .catch((error) => {
@@ -161,6 +160,7 @@ const fetchData = async () => {
         }
       })
       .catch((error) => {
+        console.error(error)
         toast.error(error.message)
       })
 }
