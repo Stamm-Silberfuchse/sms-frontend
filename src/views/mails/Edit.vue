@@ -126,7 +126,6 @@ const showIndividualRecipients = computed(() => {
 })
 
 const isDisabled = computed(() => {
-  console.log(email?.value?.status?.id)
   return email?.value?.status?.id === 2 ||
     email?.value?.status?.id === 3 ||
     email?.value?.status?.id === 4 ||

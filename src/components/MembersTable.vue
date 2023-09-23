@@ -49,9 +49,20 @@
     </template>
 
     <template v-slot:item.id="{ item }">
-      <v-chip>
-        M{{ item.columns.id }}
+      <v-chip
+        class="ma-2"
+        variant="outlined"
+        color="primary"
+        label
+      >
+      M{{ item.columns.id }}
       </v-chip>
+    </template>
+
+    <template v-slot:item.GENDER="{ item }">
+      <v-icon>
+        {{ getGenderIcon(item.raw.GENDER) }}
+      </v-icon>
     </template>
 
     <template v-slot:item.actions="{ item }">
@@ -69,6 +80,13 @@
       >
         mdi-pencil
       </v-icon>
+      <v-icon
+        size="small"
+        class="me-2"
+        @click="archiveMember(item.raw.id)"
+      >
+        mdi-delete
+      </v-icon>
     </template>
 
     <template v-slot:no-data>
@@ -79,23 +97,25 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { supabase } from '@/plugins/supabase'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
+import { parseField } from '@/plugins/sms-helper'
 
-const $route = useRoute()
 const $router = useRouter()
 
 const loading = ref(false)
 
 const headers = ref([
   { title: 'M-Nr.', key: 'id' },
+  { title: 'Geschlecht', key: 'GENDER' },
   { title: 'Nachname', key: 'LAST_NAME' },
   { title: 'Vorname', key: 'FIRST_NAME' },
   { title: 'Adresse', key: 'ADDRESS' },
   { title: 'PLZ', key: 'ZIP_CODE' },
   { title: 'Ort', key: 'CITY' },
+  { title: 'Geburtstag', key: 'BIRTHDAY' },
   { title: '', key: 'actions', sortable: false, align: 'end' },
 ])
 const selected = ref([])
@@ -110,12 +130,14 @@ const rover = ref(false)
 
 const search = ref('')
 
-const fetchData = async () => {
+const fetchData = async (all=false) => {
   loading.value = true
   console.log("Fetching asynchronously...")
+  console.log(all ? 'all' : 'active')
 
   // fetch all members
-  await supabase.from('members').select('*').eq('archived', false)
+  const query_eq = all ? '' : 'archived'
+  await supabase.from('members').select('*').eq(query_eq, false)
     .then(async ({ data, error, status }) => {
       if (error && status !== 406) throw error
       if(data) {
@@ -167,12 +189,26 @@ const fetchData = async () => {
 
 fetchData()
 
+const getGenderIcon = (value) => {
+  console.log(value)
+  switch(value) {
+    case "M": return 'mdi-gender-male'
+    case "W": return 'mdi-gender-female'
+    case "D": return 'mdi-gender-non-binary'
+    default: return 'mdi-minus'
+  }
+}
+
 const viewMember = (id) => {
   $router.push('/members/member/' + id)
 }
 
 const editMember = (id) => {
   $router.push('/members/member/' + id + '/edit')
+}
+
+const archiveMember = (id) => {
+  toast.error("Archivieren noch nicht implementiert.")
 }
 
 </script>

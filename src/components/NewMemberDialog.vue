@@ -33,7 +33,7 @@
         <v-spacer></v-spacer>
         <v-btn
           color="primary"
-          variant="text"
+          variant="elevated"
           class="text-none"
           @click="createMember"
         >
@@ -78,7 +78,6 @@ const createMember = async () => {
   await supabase.from('members').insert([
       {
         usr_id_create: user.id,
-        // timestamp_create: ((new Date()).toISOString()).toLocaleString('de-DE'),
         begin: moment(begin.value, "DD-MM-YYYY").format("YYYY-MM-DD")
       },
     ])
@@ -108,11 +107,10 @@ const createMember = async () => {
     ])
     .then(({ error, status }) => {
       if (error && status !== 406) throw error
-      console.log(status)
       if(status === 201) {
         emit('update:modelValue', false )
         toast.success("Mitglied angelegt.")
-        router.push('/members/member/' + member_id + '/edit')
+        router.push({ name: 'Mitglied bearbeiten', params: { id: member_id }})
       }
     })
     .catch((error) => {

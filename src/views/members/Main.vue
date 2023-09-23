@@ -2,31 +2,32 @@
   <v-container>
     <PageTitle title="Mitgliederverwaltung" />
 
-    <v-col>
-      <v-row justify="start">
-        <v-btn
-          color="primary"
-          @click="createUser"
-          prependIcon="mdi-account-plus"
-          class="mr-4 mb-4 text-none"
-        >
-          Anlegen
-        </v-btn>
-        <v-btn
-          @click="goToSettings"
-          prependIcon="mdi-cog-outline"
-          class="mr-4 mb-4 text-none"
-        >
-          Einstellungen
-        </v-btn>
-      </v-row>
+    <!-- Buttons -->
+    <v-row justify="start" class="mx-0 pt-0 px-3">
+      <v-btn
+        color="primary"
+        @click="createUser"
+        prependIcon="mdi-account-plus"
+        class="mr-4 mb-4 text-none"
+      >
+        Anlegen
+      </v-btn>
+      <v-btn
+        @click="goToSettings"
+        prependIcon="mdi-cog-outline"
+        class="mr-4 mb-4 text-none"
+      >
+        Einstellungen
+      </v-btn>
+    </v-row>
 
-      <NewMemberDialog v-model="dialog" />
+    <!-- NewMemberDialog -->
+    <NewMemberDialog v-model="dialog" />
 
-      <v-row class="mt-4">
-        <MembersTable />
-      </v-row>
-    </v-col>
+    <!-- MembersTable -->
+    <v-row class="mx-0 pt-2 px-3">
+      <MembersTable />
+    </v-row>
   </v-container>
 </template>
 

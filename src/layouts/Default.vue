@@ -103,121 +103,111 @@
 
     <v-main>
       <router-view />
-      <!--
-      <Suspense>
-        <router-view />
-
-        <template #fallback>
-          <v-container class="fill-height">
-            <v-responsive class="align-center text-center fill-height">
-              <v-progress-circular indeterminate color="primary" />
-            </v-responsive>
-          </v-container>
-        </template>
-      </Suspense>
-      -->
     </v-main>
   </v-app>
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue'
-  import { useRouter } from 'vue-router'
-  import { useTheme } from 'vuetify'
-  import { signOut } from '@/plugins/supabase'
-  import { useCookies } from "vue3-cookies"
-  import { useAppStore } from '@/store/app'
+import { ref, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useTheme } from 'vuetify'
+import { signOut } from '@/plugins/supabase'
+import { useCookies } from "vue3-cookies"
+import { useAppStore } from '@/store/app'
 
-  import { useUserStore } from '@/store/user'
+import { useUserStore } from '@/store/user'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
-  const { cookies } = useCookies()
+const { cookies } = useCookies()
 
-  const theme = useTheme()
-  const darkMode = ref(true)
+const theme = useTheme()
+const darkMode = ref(true)
 
-  const router = useRouter()
+const router = useRouter()
 
-  const app = useAppStore()
-  const user = useUserStore()
+const app = useAppStore()
+const user = useUserStore()
 
-  const drawer = ref(true)
+const drawer = ref(true)
 
-  onMounted(() => {
-    darkMode.value = cookies.get('themeMode') === 'darkTheme'
-    theme.global.name.value = darkMode.value ? 'darkTheme' : 'lightTheme'
+onMounted(() => {
+  darkMode.value = cookies.get('themeMode') === 'darkTheme'
+  theme.global.name.value = darkMode.value ? 'darkTheme' : 'lightTheme'
+})
+
+const onSignOut = () => {
+  signOut().then(() => {
+    toast.success('Anmeldung erfolgreich')
+    router.push({ name: 'Anmelden' })
   })
+}
 
-  const onSignOut = () => {
-    signOut().then(() => {
-      router.push('/login')
-    })
-  }
+const switchTheme = () => {
+  darkMode.value = !darkMode.value
+  theme.global.name.value = darkMode.value ? 'darkTheme' : 'lightTheme'
+  cookies.set('themeMode', theme.global.name.value)
+}
 
-  const switchTheme = () => {
-    darkMode.value = !darkMode.value
-    theme.global.name.value = darkMode.value ? 'darkTheme' : 'lightTheme'
-    cookies.set('themeMode', theme.global.name.value)
-  }
-
-  const switchLoading = () => {
-    app.setGlobalLoading(!app.globalLoading)
-  }
+const switchLoading = () => {
+  app.setGlobalLoading(!app.globalLoading)
+}
 </script>
 
 <script>
-  export default {
-    data: () => ({
-      drawer: true,
-      navProperties: [
-        {
-          title: 'Dashboard',
-          icon: 'mdi-view-dashboard',
-          link: '/'
-        },
-        {
-          title: 'Mails',
-          icon: 'mdi-email',
-          link: '/mails'
-        },
-        {
-          title: 'Kalender',
-          icon: 'mdi-calendar',
-          children: [
-            {
-              title: 'Übersicht',
-              icon: 'mdi-calendar-month-outline',
-              link: '/calendar/alles'
-            },
-            {
-              title: 'Heimbelegung',
-              icon: 'mdi-home-clock-outline',
-              link: '/calendar/heim'
-            },
-            {
-              title: 'Fahrten & Lager',
-              icon: 'mdi-calendar-star',
-              link: '/calendar/fahrten-lager'
-            }
-          ]
-        },
-        {
-          title: 'Dokumente & Vorlagen',
-          icon: 'mdi-file-document',
-          link: '/docs'
-        },
-        {
-          title: 'ToDos',
-          icon: 'mdi-check',
-          link: '/todos'
-        },
-        {
-          title: 'Mitgliederverwaltung',
-          icon: 'mdi-account-group',
-          link: '/members'
-        },
-      ]
-    }),
-  }
+export default {
+  data: () => ({
+    drawer: true,
+    navProperties: [
+      {
+        title: 'Dashboard',
+        icon: 'mdi-view-dashboard-outline',
+        link: '/'
+      },
+      {
+        title: 'Mails',
+        icon: 'mdi-email-outline',
+        link: '/mails'
+      },
+      {
+        title: 'Kalender',
+        icon: 'mdi-calendar',
+        children: [
+          {
+            title: 'Übersicht',
+            icon: 'mdi-calendar-month-outline',
+            link: '/calendar/alles'
+          },
+          {
+            title: 'Heimbelegung',
+            icon: 'mdi-home-clock-outline',
+            link: '/calendar/heim'
+          },
+          {
+            title: 'Fahrten & Lager',
+            icon: 'mdi-calendar-star',
+            link: '/calendar/fahrten-lager'
+          }
+        ]
+      },
+      {
+        title: 'Dokumente & Vorlagen',
+        icon: 'mdi-file-document-outline',
+        link: '/docs'
+      },
+      {
+        title: 'ToDos',
+        icon: 'mdi-check-all',
+        link: '/todos'
+      },
+      {
+        title: 'Mitgliederverwaltung',
+        icon: 'mdi-account-group',
+        link: '/members'
+      },
+    ]
+  }),
+}
 </script>
 
 <style lang="scss">

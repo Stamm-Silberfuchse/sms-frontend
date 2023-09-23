@@ -105,6 +105,8 @@
   import { ref } from 'vue'
   import { useRouter, useRoute } from 'vue-router'
   import { supabase, signIn, resetPW } from '@/plugins/supabase'
+  import { toast } from 'vue3-toastify'
+  import 'vue3-toastify/dist/index.css'
 
   import { useUserStore } from '@/store/user'
 
@@ -122,7 +124,8 @@
   const onSignIn = async () => {
     const data = await signIn(email.value, password.value)
     if (data != null) {
-      router.push(route.query.redirect || '/')
+      toast.success('Anmeldung erfolgreich')
+      router.push(route.query.redirect || { name: 'Home' })
     }
   }
 

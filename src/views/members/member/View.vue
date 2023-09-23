@@ -1,8 +1,79 @@
 <template>
   <v-container>
-    <PageTitle :back="true" :title="`${getMemberDataByFieldNameIntern('FIRST_NAME')} ${getMemberDataByFieldNameIntern('LAST_NAME')}`" />
+    <PageTitle
+      :back="true"
+      :title="`${getMemberDataByFieldNameIntern('FIRST_NAME')} ${getMemberDataByFieldNameIntern('LAST_NAME')}`"
+      :loading="loading"
+    >
+      <v-chip
+        class="ma-2"
+        variant="outlined"
+        color="primary"
+        label
+      >
+        M{{ $route.params.id }}
+      </v-chip>
+      <v-chip
+        class="ma-2"
+        variant="flat"
+        text-color="white"
+      >
+        inaktiv
+      </v-chip>
+      <v-chip
+        class="ma-2"
+        variant="flat"
+        color="orange"
+      >
+        Meute
+      </v-chip>
+      <v-chip
+        class="ma-2"
+        variant="flat"
+        color="blue-darken-4"
+      >
+        Sippe
+      </v-chip>
+      <v-chip
+        class="ma-2"
+        variant="flat"
+        color="red-darken-4"
+      >
+        Rover
+      </v-chip>
+      <v-chip
+        class="ma-2"
+        variant="flat"
+        color="yellow-darken-4"
+        prependIcon="mdi-crown"
+      >
+        StaFü
+      </v-chip>
+    </PageTitle>
 
-    <v-row>
+    <v-row justify="start" class="mx-0 pt-0 px-3">
+      <v-btn
+        color="primary"
+        :to="`/members/member/${$route.params.id}/edit`"
+        prependIcon="mdi-pencil"
+        class="mr-4 mb-4 text-none"
+      >
+        Bearbeiten
+      </v-btn>
+      <v-btn
+        @click="goToSettings"
+        prependIcon="mdi-email-edit-outline"
+        class="mr-4 mb-4 text-none"
+      >
+        E-Mail-Einstellungen
+      </v-btn>
+    </v-row>
+
+    <v-row
+      justify="start"
+      class="mx-0 mt-0 mb-4"
+      style="padding-left: -20px;"
+    >
       <v-col cols="12" lg="4" md="6" justify="start" v-for="(category, i) in categories">
         <v-card class="my-2" width="100%">
           <v-card-text class="mb-6">
@@ -20,7 +91,7 @@
               </v-col>
               <v-col cols="6" class="py-1 pl-0">
                 <v-card-text class="text-body-1 py-0">
-                  {{ getMemberDataByFieldID(field.id) }}
+                  {{ getMemberDataByFieldID(field) }}
                 </v-card-text>
               </v-col>
             </v-row>
@@ -37,6 +108,7 @@ import { supabase } from '@/plugins/supabase'
 import { useRoute } from 'vue-router'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
+import { parseField } from '@/plugins/sms-helper'
 
 import MembersTable from '@/components/MembersTable.vue'
 import PageTitle from '@/components/PageTitle.vue'
@@ -91,7 +163,6 @@ const fetchData = async() => {
     })
 
   Promise.all([promise1, promise2, promise3]).then((values) => {
-    console.log(categories.value)
     loading.value = false
   })
 }
@@ -102,8 +173,10 @@ const fieldsByCategory = (cat_id) => {
   return fields.value.filter(el => el.cat_id === cat_id)
 }
 
-const getMemberDataByFieldID = (field_id) => {
-  return loading.value ? '...' : member?.value?.find(el => el?.member_field_id === field_id)?.value
+const getMemberDataByFieldID = (field) => {
+  if(loading.value) return '...'
+  const value = member?.value?.find(el => el?.member_field_id === field.id)?.value
+  return parseField(field.type, value)
 }
 
 const getMemberDataByFieldNameIntern = (name_intern) => {
@@ -113,6 +186,6 @@ const getMemberDataByFieldNameIntern = (name_intern) => {
 }
 
 const goToSettings = () => {
-  toast.info('Not implemented yet')
+  toast.info('E-Mail-Einstellungen noch nicht implementiert.')
 }
 </script>

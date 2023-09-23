@@ -1,8 +1,79 @@
 <template>
   <v-container>
-    <PageTitle :back="true" :title="`${getMemberDataByFieldNameIntern('FIRST_NAME')} ${getMemberDataByFieldNameIntern('LAST_NAME')}`" />
+    <PageTitle
+      :back="true"
+      :title="`${getMemberDataByFieldNameIntern('FIRST_NAME')} ${getMemberDataByFieldNameIntern('LAST_NAME')}`"
+      :loading="loading"
+    >
+      <v-chip
+        class="ma-2"
+        variant="outlined"
+        color="primary"
+        label
+      >
+        M{{ $route.params.id }}
+      </v-chip>
+      <v-chip
+        class="ma-2"
+        variant="flat"
+        text-color="white"
+      >
+        inaktiv
+      </v-chip>
+      <v-chip
+        class="ma-2"
+        variant="flat"
+        color="orange"
+      >
+        Meute
+      </v-chip>
+      <v-chip
+        class="ma-2"
+        variant="flat"
+        color="blue-darken-4"
+      >
+        Sippe
+      </v-chip>
+      <v-chip
+        class="ma-2"
+        variant="flat"
+        color="red-darken-4"
+      >
+        Rover
+      </v-chip>
+      <v-chip
+        class="ma-2"
+        variant="flat"
+        color="yellow-darken-4"
+        prependIcon="mdi-crown"
+      >
+        StaFü
+      </v-chip>
+    </PageTitle>
 
-    <v-row>
+    <v-row justify="start" class="mx-0 pt-0 px-3">
+      <v-btn
+        color="primary"
+        prependIcon="mdi-content-save"
+        class="mr-4 mb-4 text-none"
+        @click="saveMember"
+      >
+        Speichern
+      </v-btn>
+      <v-btn
+        @click="goToSettings"
+        prependIcon="mdi-email-edit-outline"
+        class="mr-4 mb-4 text-none"
+      >
+        E-Mail-Einstellungen
+      </v-btn>
+    </v-row>
+
+    <v-row
+      justify="start"
+      class="mx-0 mt-0 mb-4"
+      style="padding-left: -20px;"
+    >
       <v-col cols="12" lg="4" md="6" justify="start" v-for="(category, i) in categories">
         <v-card class="my-2" width="100%">
           <v-card-text class="mb-6">
@@ -13,7 +84,7 @@
               v-for="(field, k) in formDataFieldsByCategory(category.id)"
               :key="`${i}-${field.id}`"
             >
-              <v-col cols="12" class="py-1">
+              <v-col cols="12" class="py-1 px-7">
                 <v-checkbox
                   v-if="field.type === 'BOOL'"
                   :label="field.label"
@@ -51,30 +122,20 @@
         </v-card>
       </v-col>
     </v-row>
-    <v-row class="mt-8" justify="center">
-      <v-btn
-        color="primary"
-        prependIcon="mdi-content-save"
-        class="mb-4 text-none"
-        @click="saveMember"
-      >
-        Speichern
-      </v-btn>
-    </v-row>
   </v-container>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { supabase } from '@/plugins/supabase'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
 import PageTitle from '@/components/PageTitle.vue'
-import InputField from '@/components/members/input-fields/InputField.vue'
 
 const $route = useRoute()
+const $router = useRouter()
 
 const loading = ref(false)
 
@@ -230,7 +291,6 @@ const updateValue = (value, field) => {
 
 const saveMember = async () => {
   loading.value = true
-  console.log(Object.values(updatedValues))
   await supabase.from('members_data')
     .upsert(
       Object.values(updatedValues)
@@ -245,6 +305,7 @@ const saveMember = async () => {
         if(len > 1) { message += "en" }
         message += " gespeichert"
         toast.success(message)
+        $router.push({ name: 'Mitglied ansehen', params: { id: $route.params.id }})
         loading.value = false
       }
     })
