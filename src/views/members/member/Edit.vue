@@ -2,62 +2,65 @@
   <v-container>
     <PageTitle :back="true" :title="`${getMemberDataByFieldNameIntern('FIRST_NAME')} ${getMemberDataByFieldNameIntern('LAST_NAME')}`" />
 
-    <v-col>
-      <v-row justify="start" v-for="(category, i) in categories">
+    <v-row>
+      <v-col cols="12" lg="4" md="6" justify="start" v-for="(category, i) in categories">
         <v-card class="my-2" width="100%">
-          <v-card-item>
-            <v-card-title>
+          <v-card-text class="mb-6">
+            <v-card-title class="text-h5 text--primary mb-5">
               {{ category.name }}
             </v-card-title>
-          </v-card-item>
-          <v-card-text>
-            <div v-for="(field, k) in formDataFieldsByCategory(category.id)" :key="`${i}-${field.id}`">
-              <v-checkbox
-                v-if="field.type === 'BOOL'"
-                :label="field.label"
-                v-model="formData[category.id]['fields'][field.id]['value']"
-                @update:model-value="updateValue($event, field)"
-              ></v-checkbox>
-              <v-select
-                v-else-if="field.type === 'GENDER'"
-                :label="field.label"
-                :items="genderOptions"
-                item-title="text"
-                item-value="value"
-                chips
-                v-model="formData[category.id]['fields'][field.id]['value']"
-                @update:model-value="updateValue($event, field)"
-              ></v-select>
-              <v-text-field
-                v-else
-                :label="field.label"
-                :type="getTextFieldType(field.type)"
-                v-model="formData[category.id]['fields'][field.id]['value']"
-                @update:model-value="updateValue($event, field)"
-              ></v-text-field>
-              <!--
-              <InputField
-                :type="field.type"
-                :label="field.label"
-                :model="formData[category.id].fields[field.id]['value']"
-                :nameIntern="formData[category.id].fields[field.id].name_intern"
-              />
-              -->
-            </div>
+            <v-row
+              v-for="(field, k) in formDataFieldsByCategory(category.id)"
+              :key="`${i}-${field.id}`"
+            >
+              <v-col cols="12" class="py-1">
+                <v-checkbox
+                  v-if="field.type === 'BOOL'"
+                  :label="field.label"
+                  v-model="formData[category.id]['fields'][field.id]['value']"
+                  @update:model-value="updateValue($event, field)"
+                ></v-checkbox>
+                <v-select
+                  v-else-if="field.type === 'GENDER'"
+                  :label="field.label"
+                  :items="genderOptions"
+                  item-title="text"
+                  item-value="value"
+                  chips
+                  v-model="formData[category.id]['fields'][field.id]['value']"
+                  @update:model-value="updateValue($event, field)"
+                ></v-select>
+                <v-text-field
+                  v-else
+                  :label="field.label"
+                  :type="getTextFieldType(field.type)"
+                  v-model="formData[category.id]['fields'][field.id]['value']"
+                  @update:model-value="updateValue($event, field)"
+                ></v-text-field>
+                <!--
+                <InputField
+                  :type="field.type"
+                  :label="field.label"
+                  :model="formData[category.id].fields[field.id]['value']"
+                  :nameIntern="formData[category.id].fields[field.id].name_intern"
+                />
+                -->
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
-      </v-row>
-      <v-row class="mt-8" justify="center">
-        <v-btn
-          color="primary"
-          prependIcon="mdi-content-save"
-          class="mb-4 text-none"
-          @click="saveMember"
-        >
-          Speichern
-        </v-btn>
-      </v-row>
-    </v-col>
+      </v-col>
+    </v-row>
+    <v-row class="mt-8" justify="center">
+      <v-btn
+        color="primary"
+        prependIcon="mdi-content-save"
+        class="mb-4 text-none"
+        @click="saveMember"
+      >
+        Speichern
+      </v-btn>
+    </v-row>
   </v-container>
 </template>
 
@@ -126,7 +129,6 @@ const fetchData = async() => {
       console.error(error)
       toast.error(error.message)
     })
-  console.log("Categories fetched")
 
   // fetch all member_fields
   await supabase.from('member_fields').select('*').neq('type', 'PLACEHOLDER')

@@ -2,22 +2,32 @@
   <v-container>
     <PageTitle :back="true" :title="`${getMemberDataByFieldNameIntern('FIRST_NAME')} ${getMemberDataByFieldNameIntern('LAST_NAME')}`" />
 
-    <v-col>
-      <v-row justify="start" v-for="(category, i) in categories">
+    <v-row>
+      <v-col cols="12" lg="4" md="6" justify="start" v-for="(category, i) in categories">
         <v-card class="my-2" width="100%">
-          <v-card-item>
-            <v-card-title>
+          <v-card-text class="mb-6">
+            <v-card-title class="text-h5 text--primary mb-5">
               {{ category.name }}
             </v-card-title>
-          </v-card-item>
-          <v-card-text>
-            <div v-for="(field, k) in fieldsByCategory(category.id)" :key="`${i}-${field.id}`">
-              {{ field.name }}: {{ getMemberDataByFieldID(field.id) }}
-            </div>
+            <v-row
+              v-for="(field, k) in fieldsByCategory(category.id)"
+              :key="`${i}-${field.id}`"
+            >
+              <v-col cols="6" class="py-1 pr-0">
+                <v-card-text class="text-body-1 font-weight-bold py-0">
+                  {{ field.name }}:
+                </v-card-text>
+              </v-col>
+              <v-col cols="6" class="py-1 pl-0">
+                <v-card-text class="text-body-1 py-0">
+                  {{ getMemberDataByFieldID(field.id) }}
+                </v-card-text>
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
-      </v-row>
-    </v-col>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
