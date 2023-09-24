@@ -1,6 +1,6 @@
 <template>
   <v-container class="fill-height">
-    <v-responsive class="align-center text-center fill-height">
+    <v-responsive class="align-center text-center fill-height mx-2">
       <v-img height="200" src="@/assets/logo_weiss.svg" />
 
       <h1 class="text-h2 font-weight-bold mt-10 text-white font-quicksand">SMS</h1>
