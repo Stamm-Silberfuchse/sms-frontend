@@ -1,7 +1,6 @@
 <template>
   <v-container class="fill-height">
     <v-responsive class="align-center text-center fill-height">
-      <Alert></Alert>
 
       <v-img height="240" src="@/assets/logo_rot.svg" />
 
