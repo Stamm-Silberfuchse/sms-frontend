@@ -19,6 +19,7 @@ export function registerPlugins (app) {
     .use(pinia)
     .use(Vue3Toastify, {
       autoClose: 3000,
+      clearOnUrlChange: false,
       position: toast.POSITION.BOTTOM_RIGHT
     })
 }
