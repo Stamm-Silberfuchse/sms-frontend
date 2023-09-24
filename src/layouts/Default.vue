@@ -138,7 +138,7 @@ const router = useRouter()
 const app = useAppStore()
 const user = useUserStore()
 
-const drawer = ref(true)
+const drawer = ref(false)
 
 onMounted(() => {
   darkMode.value = cookies.get('themeMode') === 'darkTheme'
