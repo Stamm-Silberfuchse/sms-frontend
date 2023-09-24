@@ -116,7 +116,7 @@ const routes = [
     children: [
       {
         path: '',
-        name: 'Mietgliederverwaltung',
+        name: 'Mitgliederverwaltung',
         component: () => import('@/views/members/Main.vue'),
       },
       {

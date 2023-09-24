@@ -32,7 +32,7 @@ export default createVuetify({
       darkTheme: {
         dark: true,
         colors: {
-          primary: '#8d1d23',
+          primary: '#cc666b',
           secondary: '#5CBBF6',
         },
       },

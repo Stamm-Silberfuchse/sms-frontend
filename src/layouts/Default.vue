@@ -101,14 +101,14 @@
       -->
     </v-navigation-drawer>
 
-    <v-main>
+    <v-main class="mb-8">
       <router-view />
     </v-main>
   </v-app>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
 import { signOut } from '@/plugins/supabase'

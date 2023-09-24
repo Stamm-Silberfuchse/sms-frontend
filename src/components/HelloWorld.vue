@@ -17,13 +17,13 @@
             :to="{ name: 'Mail' }"
             min-width="164"
             variant="text"
+            class="text-none"
           >
             <v-icon
-              icon="mdi-view-dashboard"
+              icon="mdi-email-outline"
               size="large"
               start
             />
-
             Mails
           </v-btn>
         </v-col>
@@ -31,38 +31,34 @@
         <v-col cols="auto">
           <v-btn
             color="primary"
-            href="https://vuetifyjs.com/introduction/why-vuetify/#feature-guides"
             min-width="228"
-            rel="noopener noreferrer"
             size="x-large"
-            target="_blank"
             variant="flat"
-          >
-            <v-icon
-              icon="mdi-speedometer"
-              size="large"
-              start
-            />
-
-            Get Started
-          </v-btn>
-        </v-col>
-
-        <v-col cols="auto">
-          <v-btn
-            href="https://community.vuetifyjs.com/"
-            min-width="164"
-            rel="noopener noreferrer"
-            target="_blank"
-            variant="text"
+            class="text-none"
+            :to="{ name: 'Mitgliederverwaltung' }"
           >
             <v-icon
               icon="mdi-account-group"
               size="large"
               start
             />
+            Mitglieder
+          </v-btn>
+        </v-col>
 
-            Community
+        <v-col cols="auto">
+          <v-btn
+            min-width="164"
+            variant="text"
+            :to="{ name: 'Kalender' }"
+            class="text-none"
+          >
+            <v-icon
+              icon="mdi-calendar-outline"
+              size="large"
+              start
+            />
+            Kalender
           </v-btn>
         </v-col>
       </v-row>

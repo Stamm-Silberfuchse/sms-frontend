@@ -2,7 +2,7 @@
   <v-data-table
     v-model="selected"
     :headers="headers"
-    :items="members"
+    :items="membersFiltered"
     :search="search"
     item-value="name"
     show-select
@@ -37,6 +37,11 @@
         >
           Rover
         </v-chip>
+        <v-checkbox
+          label="alle anzeigen"
+          v-model="showAll"
+          class="pt-5"
+        ></v-checkbox>
         <v-spacer />
         <v-text-field
           v-model="search"
@@ -59,6 +64,28 @@
       </v-chip>
     </template>
 
+    <template v-slot:item.FIRST_NAME="{ item }">
+      <router-link
+        style="text-decoration: none;"
+        class="text-primary"
+        tag="a"
+        :to="{ name: 'Mitglied ansehen', params: { id: item.raw.id } }"
+      >
+        {{ item.columns.FIRST_NAME }}
+      </router-link>
+    </template>
+
+    <template v-slot:item.LAST_NAME="{ item }">
+      <router-link
+        style="text-decoration: none;"
+        class="text-primary"
+        tag="a"
+        :to="{ name: 'Mitglied ansehen', params: { id: item.raw.id } }"
+      >
+        {{ item.columns.LAST_NAME }}
+      </router-link>
+    </template>
+
     <template v-slot:item.GENDER="{ item }">
       <v-icon>
         {{ getGenderIcon(item.raw.GENDER) }}
@@ -66,13 +93,6 @@
     </template>
 
     <template v-slot:item.actions="{ item }">
-      <v-icon
-        size="small"
-        class="me-2"
-        @click="viewMember(item.raw.id)"
-      >
-        mdi-eye
-      </v-icon>
       <v-icon
         size="small"
         class="me-2"
@@ -96,7 +116,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/plugins/supabase'
 import { toast } from 'vue3-toastify'
@@ -129,15 +149,15 @@ const sippe = ref(false)
 const rover = ref(false)
 
 const search = ref('')
+const showAll = ref(false)
+const loadedAll = ref(false)
 
 const fetchData = async (all=false) => {
   loading.value = true
-  console.log("Fetching asynchronously...")
-  console.log(all ? 'all' : 'active')
 
   // fetch all members
   const query_eq = all ? '' : 'archived'
-  await supabase.from('members').select('*').eq(query_eq, false)
+  await supabase.from('members').select('*').eq(query_eq, false).order('id', { ascending: true })
     .then(async ({ data, error, status }) => {
       if (error && status !== 406) throw error
       if(data) {
@@ -190,7 +210,6 @@ const fetchData = async (all=false) => {
 fetchData()
 
 const getGenderIcon = (value) => {
-  console.log(value)
   switch(value) {
     case "M": return 'mdi-gender-male'
     case "W": return 'mdi-gender-female'
@@ -210,5 +229,24 @@ const editMember = (id) => {
 const archiveMember = (id) => {
   toast.error("Archivieren noch nicht implementiert.")
 }
+
+const membersFiltered = computed(() => {
+  console.log(members.value)
+  return members.value.filter((el) => {
+    if(!showAll.value && el.archived) return false
+    return true
+  })
+})
+
+const rowClick = (event, data) => {
+  viewMember(data.item.raw.id)
+}
+
+watch(showAll, (value) => {
+  if(showAll && !loadedAll.value) {
+    fetchData(true)
+    loadedAll.value = true
+  }
+})
 
 </script>
