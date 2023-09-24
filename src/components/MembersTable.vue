@@ -4,7 +4,8 @@
     :headers="headers"
     :items="membersFiltered"
     :search="search"
-    item-value="name"
+    item-value="id"
+    return-object
     show-select
     class="elevation-1"
     v-model:sort-by="sortBy"
