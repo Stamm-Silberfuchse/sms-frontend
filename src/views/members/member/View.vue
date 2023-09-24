@@ -51,7 +51,7 @@
       </v-chip>
     </PageTitle>
 
-    <v-row justify="start" class="mx-0 pt-0 px-3">
+    <v-row justify="start" class="mx-0 pt-0 px-3 pb-3">
       <v-btn
         color="primary"
         :to="`/members/member/${$route.params.id}/edit`"
@@ -70,12 +70,13 @@
     </v-row>
 
     <v-row
+      v-if="!loading"
       justify="start"
       class="mx-0 mt-0 mb-4"
       style="padding-left: -20px;"
     >
       <v-col cols="12" lg="4" md="6" justify="start" v-for="(category, i) in categories">
-        <v-card class="my-2" width="100%">
+        <v-card width="100%">
           <v-card-text class="mb-6">
             <v-card-title class="text-h5 text--primary mb-5">
               {{ category.name }}

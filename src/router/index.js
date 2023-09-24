@@ -46,7 +46,7 @@ const routes = [
       {
         path: '',
         name: 'Mail',
-        component: () => import('@/views/mails/Mail.vue'),
+        component: () => import('@/views/mails/Index.vue'),
       },
       {
         path: 'compose',

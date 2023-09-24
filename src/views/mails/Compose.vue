@@ -1,62 +1,82 @@
 <template>
   <v-container>
     <PageTitle title="Mail verfassen" :back="true" />
-    <v-form>
-      <v-select
-        name="recipients"
-        v-model="recipients"
-        label="Empfänger"
-        variant="solo"
-        multiple
-        :items="recipientsOptions"
-        item-title="title"
-        item-value="id"
+
+    <v-row justify="start" class="mx-0 pt-0 px-3">
+      <v-btn
+        color="primary"
+        prepend-icon="mdi-send-clock-outline"
+        :disabled="isDisabled"
+        class="mr-4 mb-4 text-none"
+        @click="sendMail"
       >
-        <template v-slot:selection="{ item, index }">
-          <v-chip>
-            <span>{{ item.title }}</span>
-          </v-chip>
-        </template>
-      </v-select>
-
-      <v-combobox
-        name="individualRecipients"
-        v-if="showIndividualRecipients"
-        v-model="individualRecipients"
-        :items="[]"
-        label="weitere Empfänger*innen"
-        variant="solo"
-        multiple
-        chips
+        Senden
+      </v-btn>
+      <v-btn
+        prepend-icon="mdi-content-save-outline"
+        :disabled="isDisabled"
+        class="mr-4 mb-4 text-none"
+        @click="saveMail"
       >
-      </v-combobox>
+        Speichern
+      </v-btn>
+    </v-row>
 
-      <v-text-field
-        name="subject"
-        v-model="subject"
-        label="Betreff"
-        variant="solo"
-      >
-      </v-text-field>
+    <v-row
+      v-if="!loading"
+      justify="start"
+      class="mx-0 mt-0 mb-4"
+      style="padding-left: -20px;"
+    >
+      <v-col cols="12">
+        <v-form>
+          <v-select
+            name="recipients"
+            v-model="recipients"
+            label="Empfänger"
+            variant="solo"
+            multiple
+            :items="recipientsOptions"
+            item-title="title"
+            item-value="id"
+          >
+            <template v-slot:selection="{ item, index }">
+              <v-chip>
+                <span>{{ item.title }}</span>
+              </v-chip>
+            </template>
+          </v-select>
 
-      <v-textarea
-        name="body"
-        v-model="body"
-        variant="solo"
-        label="Inhalt"
-        auto-grow
-      ></v-textarea>
+          <v-combobox
+            name="individualRecipients"
+            v-if="showIndividualRecipients"
+            v-model="individualRecipients"
+            :items="[]"
+            label="weitere Empfänger*innen"
+            variant="solo"
+            multiple
+            chips
+          >
+          </v-combobox>
 
-      <v-row class="ma-0 justify-end">
-        <v-btn class="mr-4 text-none" prepend-icon="mdi-content-save-outline" @click="saveMail">
-          Speichern
-        </v-btn>
-        <v-btn class="text-none" color="primary" prepend-icon="mdi-send-clock-outline">
-          Senden
-        </v-btn>
-      </v-row>
+          <v-text-field
+            name="subject"
+            v-model="subject"
+            label="Betreff"
+            variant="solo"
+          >
+          </v-text-field>
 
-    </v-form>
+          <v-textarea
+            name="body"
+            v-model="body"
+            variant="solo"
+            label="Inhalt"
+            auto-grow
+          ></v-textarea>
+        </v-form>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 

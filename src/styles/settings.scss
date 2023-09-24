@@ -24,5 +24,12 @@
 }
 
 .v-container {
-    max-width: 1400px !important;
+    max-width: 1460px !important;
+}
+
+@media screen and (max-width: 576px) {
+    .v-container {
+        padding-left: 3px;
+        padding-right: 3px;
+    }    
 }

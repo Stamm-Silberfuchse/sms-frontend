@@ -3,6 +3,14 @@
     <v-app-bar elevation="0">
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
 
+      <v-img
+        class="ml-2"
+        src="@/assets/logo_rot.svg"
+        max-height="35"
+        max-width="35"
+        contain
+      />
+
       <v-app-bar-title class="font-nistra appbar-title">SMS</v-app-bar-title>
 
       <v-btn @click="switchLoading">
@@ -13,6 +21,7 @@
         <v-switch
           v-model="darkMode"
           hide-details
+          class="mr-2"
           @click.prevent="switchTheme"
         >
           <template v-slot:prepend>

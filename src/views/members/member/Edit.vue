@@ -51,7 +51,7 @@
       </v-chip>
     </PageTitle>
 
-    <v-row justify="start" class="mx-0 pt-0 px-3">
+    <v-row justify="start" class="mx-0 pt-0 px-3 pb-3">
       <v-btn
         color="primary"
         prependIcon="mdi-content-save"
@@ -70,6 +70,7 @@
     </v-row>
 
     <v-row
+      v-if="!loading"
       justify="start"
       class="mx-0 mt-0 mb-4"
       style="padding-left: -20px;"
@@ -290,7 +291,6 @@ const updateValue = (value, field) => {
 }
 
 const saveMember = async () => {
-  loading.value = true
   await supabase.from('members_data')
     .upsert(
       Object.values(updatedValues)
@@ -306,7 +306,6 @@ const saveMember = async () => {
         message += " gespeichert"
         toast.success(message)
         $router.push({ name: 'Mitglied ansehen', params: { id: $route.params.id }})
-        loading.value = false
       }
     })
     .catch((error) => {

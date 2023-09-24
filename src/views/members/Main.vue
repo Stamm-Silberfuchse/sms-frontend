@@ -3,7 +3,7 @@
     <PageTitle title="Mitgliederverwaltung" />
 
     <!-- Buttons -->
-    <v-row justify="start" class="mx-0 pt-0 px-3">
+    <v-row justify="start" class="mx-0 pt-0 px-3 pb-3">
       <v-btn
         color="primary"
         @click="createUser"
@@ -25,7 +25,7 @@
     <NewMemberDialog v-model="dialog" />
 
     <!-- MembersTable -->
-    <v-row class="mx-0 pt-2 px-3">
+    <v-row class="mx-0 px-3">
       <MembersTable />
     </v-row>
   </v-container>
