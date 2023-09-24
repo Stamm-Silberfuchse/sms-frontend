@@ -2,7 +2,7 @@
   <v-container>
     <PageTitle title="Mail verfassen" :back="true" />
 
-    <v-row justify="start" class="mx-0 pt-0 px-3">
+    <v-row justify="start" class="mx-0 pt-0 px-3 pb-3">
       <v-btn
         color="primary"
         prepend-icon="mdi-send-clock-outline"
