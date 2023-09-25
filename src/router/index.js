@@ -61,7 +61,7 @@ const routes = [
           {
             path: ':id',
             name: 'Mail bearbeiten',
-            component: () => import('@/views/mails/Edit.vue', { props: true }),
+            component: () => import('@/views/mails/Edit.vue')
           }
         ]
       },
@@ -131,12 +131,12 @@ const routes = [
               {
                 path: '',
                 name: 'Mitglied ansehen',
-                component: () => import('@/views/members/member/View.vue', { props: true }),
+                component: () => import('@/views/members/member/View.vue'),
               },
               {
                 path: 'edit',
                 name: 'Mitglied bearbeiten',
-                component: () => import('@/views/members/member/Edit.vue', { props: true }),
+                component: () => import('@/views/members/member/Edit.vue'),
               },
             ],
           },
@@ -151,8 +151,11 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to) => {
   const { data: { session }, error } = await supabase.auth.getSession()
+  if (error) {
+    console.error(error)
+  }
   if (!session && (to.path !== '/login' && to.path !== '/register')) {
     return {
       path: '/login',
