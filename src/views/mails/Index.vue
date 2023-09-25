@@ -38,19 +38,7 @@
           >
             <v-row justify="start">
               <v-col cols="auto">
-                <v-avatar
-                  color="primary"
-                >
-                  <span class="font-quicksand font-bold">
-                    {{ getInitials(email.author.full_name) }}
-                  </span>
-                  <v-tooltip
-                    activator="parent"
-                    location="end"
-                  >
-                    {{ email.author.full_name }}
-                  </v-tooltip>
-                </v-avatar>
+                <Avatar :authorID="email.author.id" />
               </v-col>
               <v-col>
                 <v-card-item
@@ -109,6 +97,7 @@ import 'vue3-toastify/dist/index.css'
 import moment from 'moment'
 
 import PageTitle from '@/components/PageTitle.vue'
+import Avatar from '@/components/Avatar.vue';
 
 const router = useRouter()
 

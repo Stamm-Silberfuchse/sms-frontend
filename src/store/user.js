@@ -18,7 +18,7 @@ export const useUserStore = defineStore('user', {
       try {
         const { data, error, status } = await supabase
           .from('profiles')
-          .select(`username, full_name`)
+          .select(`username, full_name, display_name`)
           .eq('id', session.user.id)
           .single()
 

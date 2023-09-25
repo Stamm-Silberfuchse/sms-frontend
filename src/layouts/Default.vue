@@ -86,7 +86,10 @@
       <template v-slot:append>
         <v-divider />
         <v-list-item lines="two">
-          <v-list-item-title v-text="user.details.full_name" />
+          <template v-slot:prepend>
+            <Avatar :loading="false" :authorID="user.id" />
+          </template>
+          <v-list-item-title v-text="user.details.display_name" />
           <v-list-item-subtitle v-text="user.email" />
           <template v-slot:append>
             <v-btn icon="mdi-logout" variant="text" color="primary" @click="onSignOut"/>
@@ -128,6 +131,8 @@ import { useUserStore } from '@/store/user'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
+import Avatar from '@/components/Avatar.vue'
+
 const { cookies } = useCookies()
 
 const theme = useTheme()
@@ -138,7 +143,7 @@ const router = useRouter()
 const app = useAppStore()
 const user = useUserStore()
 
-const drawer = ref(false)
+const drawer = ref(true)
 
 onMounted(() => {
   darkMode.value = cookies.get('themeMode') === 'darkTheme'
