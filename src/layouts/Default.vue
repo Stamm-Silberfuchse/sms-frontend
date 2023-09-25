@@ -13,30 +13,27 @@
 
       <v-app-bar-title class="font-nistra appbar-title">SMS</v-app-bar-title>
 
-      <v-btn @click="switchLoading">
-        <v-icon :color="app.globalLoading ? 'primary' : 'grey-lighten-1'">mdi-bell</v-icon>
-      </v-btn>
-
-      <template v-slot:append>
-        <v-switch
-          v-model="darkMode"
-          hide-details
-          class="mr-2"
-          @click.prevent="switchTheme"
+      <v-btn
+        v-if="notifications.length > 0 && route.name !== 'Einstellungen'"
+        icon
+        class="mr-1"
+        :to="{ name: 'Einstellungen' }"
+      >
+        <v-badge
+          :content="notifications.length"
+          :value="notifications.length"
+          color="primary"
+          overlap
+          class="mr-3"
         >
-          <template v-slot:prepend>
-            <v-icon :color="!darkMode ? 'primary' : ''">mdi-white-balance-sunny</v-icon>
-          </template>
-          <template v-slot:append>
-            <v-icon :color="darkMode ? 'primary' : ''">mdi-moon-waning-crescent</v-icon>
-          </template>
-        </v-switch>
-      </template>
+          <v-icon :color="app.globalLoading ? 'primary' : 'grey-lighten-1'">
+            mdi-bell
+          </v-icon>
+        </v-badge>
+      </v-btn>
     </v-app-bar>
 
-    <v-navigation-drawer
-      v-model="drawer"
-    >
+    <v-navigation-drawer v-model="drawer">
       <v-list nav :lines="false">
         <div v-for="(item, i) in navProperties" :key="i">
 
@@ -129,7 +126,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
 import { signOut } from '@/plugins/supabase'
 import { useCookies } from "vue3-cookies"
@@ -144,8 +141,8 @@ import Avatar from '@/components/Avatar.vue'
 const { cookies } = useCookies()
 
 const theme = useTheme()
-const darkMode = ref(true)
 
+const route = useRoute()
 const router = useRouter()
 
 const app = useAppStore()
@@ -153,9 +150,11 @@ const user = useUserStore()
 
 const drawer = ref(true)
 
+const notifications = ref(['ghost']) // TODO: Implement notifications
+
 onMounted(() => {
-  darkMode.value = cookies.get('themeMode') === 'darkTheme'
-  theme.global.name.value = darkMode.value ? 'darkTheme' : 'lightTheme'
+  const darkMode = cookies.get('themeMode') === 'darkTheme'
+  theme.global.name.value = darkMode ? 'darkTheme' : 'lightTheme'
 })
 
 const onSignOut = () => {
@@ -163,12 +162,6 @@ const onSignOut = () => {
     toast.success('Abmeldung erfolgreich')
     router.push({ name: 'Anmelden' })
   })
-}
-
-const switchTheme = () => {
-  darkMode.value = !darkMode.value
-  theme.global.name.value = darkMode.value ? 'darkTheme' : 'lightTheme'
-  cookies.set('themeMode', theme.global.name.value)
 }
 
 const switchLoading = () => {
