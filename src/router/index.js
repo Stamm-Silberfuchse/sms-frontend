@@ -144,6 +144,18 @@ const routes = [
       },
     ],
   },
+  {
+    path: '/settings',
+    component: () => import('@/layouts/Default.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Einstellungen',
+        component: () => import('@/views/Settings.vue'),
+      },
+    ],
+  },
+
 ]
 
 const router = createRouter({

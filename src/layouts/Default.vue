@@ -84,6 +84,14 @@
       </v-list>
 
       <template v-slot:append>
+        <v-list nav :lines="false">
+          <v-list-item
+            title="Einstellungen"
+            prepend-icon="mdi-cog-outline"
+            :to="{ name: 'Einstellungen' }"
+            color="primary"
+          ></v-list-item>
+        </v-list>
         <v-divider />
         <v-list-item lines="two">
           <template v-slot:prepend>
