@@ -13,6 +13,9 @@ import { createVuetify } from 'vuetify'
 import { VDataTable } from 'vuetify/labs/VDataTable'
 import { VSkeletonLoader } from 'vuetify/labs/VSkeletonLoader'
 
+// Locales
+import { de } from 'vuetify/locale'
+
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
   components: {
@@ -44,5 +47,9 @@ export default createVuetify({
         }
       },
     },
+  },
+  locale: {
+    locale: 'de',
+    messages: { de },
   },
 })
