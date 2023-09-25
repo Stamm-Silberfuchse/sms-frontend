@@ -1,55 +1,33 @@
-# essentials
+# SMS (Frontend)
 
 ## Project setup
 
-```
-# yarn
-yarn
-
-# npm
+```bash
 npm install
-
-# pnpm
-pnpm install
 ```
 
 ### Compiles and hot-reloads for development
 
-```
-# yarn
-yarn dev
-
-# npm
+```bash
 npm run dev
-
-# pnpm
-pnpm dev
 ```
 
 ### Compiles and minifies for production
 
-```
-# yarn
-yarn build
-
-# npm
+```bash
 npm run build
+```
 
-# pnpm
-pnpm build
+### View build
+
+```bash
+npm run preview
 ```
 
 ### Lints and fixes files
 
-```
-# yarn
-yarn lint
-
-# npm
+```bash
 npm run lint
-
-# pnpm
-pnpm lint
 ```
 
 ### Customize configuration
