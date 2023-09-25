@@ -232,7 +232,6 @@ const archiveMember = (id) => {
 }
 
 const membersFiltered = computed(() => {
-  console.log(members.value)
   return members.value.filter((el) => {
     if(!showAll.value && el.archived) return false
     return true
