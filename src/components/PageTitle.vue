@@ -1,5 +1,5 @@
 <template>
-  <v-row class="mx-0 pt-6 pb-6 px-3" align="end">
+  <v-row class="mx-0 pt-4 pb-6 px-3" align="end">
     <v-btn
       v-if="back"
       variant="text"
