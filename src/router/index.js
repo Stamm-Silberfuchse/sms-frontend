@@ -86,6 +86,11 @@ const routes = [
         name: 'Fahrten & Lager',
         component: () => import('@/views/calendar/FahrtenUndLager.vue'),
       },
+      {
+        path: 'intern',
+        name: 'Interne Termine',
+        component: () => import('@/views/calendar/Intern.vue'),
+      },
     ],
   },
   {

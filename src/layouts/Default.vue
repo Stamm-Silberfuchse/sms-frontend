@@ -248,6 +248,11 @@ export default {
             title: 'Fahrten & Lager',
             icon: 'mdi-calendar-star',
             link: '/calendar/fahrten-lager'
+          },
+          {
+            title: 'Intern',
+            icon: 'mdi-calendar-lock-outline',
+            link: '/calendar/intern'
           }
         ]
       },
