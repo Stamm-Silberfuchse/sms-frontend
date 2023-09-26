@@ -1,10 +1,14 @@
 <template>
   <v-app id="inspire">
     <v-app-bar elevation="0">
-      <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon
+        v-if="mobileNavigation"
+        @click="drawer = !drawer"
+      >
+      </v-app-bar-nav-icon>
 
       <v-img
-        class="ml-2"
+        :class="mobileNavigation ? 'ml-2' : 'ml-4'"
         src="@/assets/logo_rot.svg"
         max-height="35"
         max-width="35"
@@ -33,7 +37,11 @@
       </v-btn>
     </v-app-bar>
 
-    <v-navigation-drawer v-model="drawer">
+    <v-navigation-drawer
+      v-model="drawer"
+      :expand-on-hover="!mobileNavigation"
+      :rail="!mobileNavigation"
+    >
       <v-list nav :lines="false">
         <div v-for="(item, i) in navProperties" :key="i">
 
@@ -125,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onBeforeMount, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
 import { signOut } from '@/plugins/supabase'
@@ -137,6 +145,7 @@ import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
 import Avatar from '@/components/Avatar.vue'
+import { watch } from 'vue'
 
 const { cookies } = useCookies()
 
@@ -148,13 +157,20 @@ const router = useRouter()
 const app = useAppStore()
 const user = useUserStore()
 
-const drawer = ref(false)
+const drawer = ref(true)
+
+const displayWidth = ref(1920)
 
 const notifications = ref(['ghost']) // TODO: Implement notifications
 
 onMounted(() => {
+  // theme
   const darkMode = cookies.get('themeMode') === 'darkTheme'
   theme.global.name.value = darkMode ? 'darkTheme' : 'lightTheme'
+
+  // navbar
+  window.addEventListener('resize', onResize, { passive: true })
+  onResize()
 })
 
 const onSignOut = () => {
@@ -167,6 +183,31 @@ const onSignOut = () => {
 const switchLoading = () => {
   app.setGlobalLoading(!app.globalLoading)
 }
+
+const onResize = () => {
+  displayWidth.value = window.innerWidth
+  if(window.innerWidth < 1280) {
+    drawer.value = false
+  } else {
+    drawer.value = true
+  }
+  /*
+  if(window.innerWidth < 1280) {
+    console.log(document.querySelector('.v-navigation-drawer').style.setProperty('transition-duration', '0s'))
+  } else {
+    setTimeout(() => { document.querySelector('.v-navigation-drawer').style.setProperty('transition-duration', '0.2s') }, 400)
+  }
+  */
+}
+
+const mobileNavigation = computed(() => {
+  return displayWidth.value < 1280
+})
+
+onBeforeUnmount(() => {
+  if (typeof window === 'undefined') return
+  window.removeEventListener('resize', onResize, { passive: true })
+})
 </script>
 
 <script>
@@ -237,8 +278,20 @@ export default {
   line-height: unset !important;
 }
 
-.v-list-group__items {
-  --indent-padding: 16px !important;
+.v-list-group__items .v-list-item {
+  transition: all 0.2s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  padding-inline-start: 8px !important;
 }
 
+.v-navigation-drawer--is-hovering > div > div > div > div > .v-list-group__items > a {
+  padding-inline-start: 20px !important;
+}
+
+.v-navigation-drawer--rail:not(.v-navigation-drawer--is-hovering.v-navigation-drawer--expand-on-hover) .v-avatar.v-avatar--size-default {
+  --v-avatar-height: 24px !important;
+}
+.v-navigation-drawer--rail:not(.v-navigation-drawer--is-hovering.v-navigation-drawer--expand-on-hover) .v-list-item__append {
+  visibility: hidden;
+}
 </style>

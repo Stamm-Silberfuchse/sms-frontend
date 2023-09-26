@@ -55,13 +55,14 @@
                   </template>
                 </v-card-item>
               </v-col>
-              <v-col cols="auto" class="pr-0">
+              <v-col cols="auto" class="pr-0" align-self="center">
                 <v-chip
                   class="ma-2"
                   variant="flat"
                   :color="email.status.color"
                   text-color="white"
                   :prepend-icon="email.status.mdi_icon"
+                  size="small"
                 >
                   {{ email.status.display_name }}
                 </v-chip>
