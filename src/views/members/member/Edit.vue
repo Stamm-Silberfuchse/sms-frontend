@@ -13,6 +13,12 @@
       >
         M{{ $route.params.id }}
       </v-chip>
+      <Avatar
+        v-if="showAvatar"
+        :memberID="member.uuid"
+        :size="32"
+        tooltipLocation="bottom"
+      />
       <v-chip
         class="ma-2"
         variant="flat"
@@ -127,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { supabase } from '@/plugins/supabase'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue3-toastify'
@@ -141,6 +147,7 @@ const $router = useRouter()
 const loading = ref(false)
 
 const member = ref([])
+const memberData = ref([])
 const categories = ref([])
 const fields = ref([])
 
@@ -170,6 +177,23 @@ const genderOptions = [
 const fetchData = async() => {
   loading.value = true
   console.log("Fetching synchronously...")
+
+  // fetch member
+  supabase
+    .from('members')
+    .select(`*`)
+    .eq('id', $route.params.id)
+    .single()
+    .then(({ data, error, status }) => {
+      if (error && status !== 406) throw error
+      if(data) {
+        member.value = data
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+      toast.error(error.message)
+    })
 
   // fetch all categories
   await supabase.from('categories').select('id, uuid, name, name_intern')
@@ -224,7 +248,7 @@ const fetchData = async() => {
     .then(({ data, error, status }) => {
       if (error && status !== 406) throw error
       if(data) {
-        member.value = data
+        memberData.value = data
         data.forEach((el) => {
           const cat = fields.value.find(field => field.id === el.member_field_id)
           let value = el.value
@@ -255,12 +279,12 @@ const formDataFieldsByCategory = (cat_id) => {
 }
 
 const getMemberDataByFieldID = (field_id) => {
-  return loading.value ? '...' : member?.value?.find(el => el?.member_field_id === field_id)?.value
+  return loading.value ? '...' : memberData?.value?.find(el => el?.member_field_id === field_id)?.value
 }
 
 const getMemberDataByFieldNameIntern = (name_intern) => {
   const field_id = fields?.value?.find(el => el.name_intern === name_intern)?.id
-  const data = member?.value?.find(el => el?.member_field_id === field_id)?.value
+  const data = memberData?.value?.find(el => el?.member_field_id === field_id)?.value
   return data ? data : '...'
 }
 
@@ -313,5 +337,9 @@ const saveMember = async () => {
       toast.error(error.message)
     })
 }
+
+const showAvatar = computed(() => {
+  return member.value?.uuid != null && member.value?.uuid.length > 0
+})
 
 </script>
