@@ -13,6 +13,12 @@
       >
         M{{ $route.params.id }}
       </v-chip>
+      <Avatar
+        v-if="showAvatar"
+        :memberID="member.uuid"
+        :size="32"
+        tooltipLocation="bottom"
+      />
       <v-chip
         class="ma-2"
         variant="flat"
@@ -104,27 +110,45 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { supabase } from '@/plugins/supabase'
 import { useRoute } from 'vue-router'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 import { parseField } from '@/plugins/sms-helper'
 
-import MembersTable from '@/components/MembersTable.vue'
 import PageTitle from '@/components/PageTitle.vue'
+import Avatar from '@/components/Avatar.vue'
 
 const $route = useRoute()
 
 const loading = ref(false)
 
-const member = ref([])
+const member = ref({id: ''})
+const memberData = ref([])
 const categories = ref([])
 const fields = ref([])
 
 const fetchData = async() => {
   loading.value = true
   console.log("Fetching synchronously...")
+
+  // fetch member
+  supabase
+    .from('members')
+    .select(`*`)
+    .eq('id', $route.params.id)
+    .single()
+    .then(({ data, error, status }) => {
+      if (error && status !== 406) throw error
+      if(data) {
+        member.value = data
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+      toast.error(error.message)
+    })
 
   // fetch all member fields
   const promise1 = supabase.from('member_fields').select('id, cat_id, type, name_intern, name').neq('type', 'PLACEHOLDER')
@@ -156,7 +180,7 @@ const fetchData = async() => {
     .then(({ data, error, status }) => {
       if (error && status !== 406) throw error
       if(data) {
-        member.value = data
+        memberData.value = data
       }
     })
     .catch((error) => {
@@ -176,17 +200,21 @@ const fieldsByCategory = (cat_id) => {
 
 const getMemberDataByFieldID = (field) => {
   if(loading.value) return '...'
-  const value = member?.value?.find(el => el?.member_field_id === field.id)?.value
+  const value = memberData?.value?.find(el => el?.member_field_id === field.id)?.value
   return parseField(field.type, value)
 }
 
 const getMemberDataByFieldNameIntern = (name_intern) => {
   const field_id = fields?.value?.find(el => el.name_intern === name_intern)?.id
-  const data = member?.value?.find(el => el?.member_field_id === field_id)?.value
+  const data = memberData?.value?.find(el => el?.member_field_id === field_id)?.value
   return data ? data : '...'
 }
 
 const goToSettings = () => {
   toast.info('E-Mail-Einstellungen noch nicht implementiert.')
 }
+
+const showAvatar = computed(() => {
+  return member.value?.uuid != null && member.value?.uuid.length > 0
+})
 </script>

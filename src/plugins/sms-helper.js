@@ -1,8 +1,8 @@
 import moment from 'moment'
 
 const parseField = (type, value) => {
-  console.log("Parsing:", type)
-  console.log("Value:", value)
+  // console.log("Parsing:", type)
+  // console.log("Value:", value)
   if(value) {
     if(type === 'DATE') {
       return moment(value).format('DD.MM.YYYY')

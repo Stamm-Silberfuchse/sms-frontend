@@ -92,7 +92,7 @@
         <v-divider />
         <v-list-item lines="two">
           <template v-slot:prepend>
-            <Avatar :loading="false" :authorID="user.id" />
+            <Avatar :memberID="user.id" />
           </template>
           <v-list-item-title v-text="user.details.display_name" />
           <v-list-item-subtitle v-text="user.email" />
@@ -148,7 +148,7 @@ const router = useRouter()
 const app = useAppStore()
 const user = useUserStore()
 
-const drawer = ref(true)
+const drawer = ref(false)
 
 const notifications = ref(['ghost']) // TODO: Implement notifications
 

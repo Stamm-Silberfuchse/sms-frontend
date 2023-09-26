@@ -38,7 +38,7 @@
           >
             <v-row justify="start">
               <v-col cols="auto">
-                <Avatar :authorID="email.author.id" />
+                <Avatar :memberID="email.author.id" />
               </v-col>
               <v-col>
                 <v-card-item
