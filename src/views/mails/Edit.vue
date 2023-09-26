@@ -95,7 +95,7 @@
 </template>
 
 <script setup>
-import { computed, ref, toRaw } from 'vue'
+import { computed, ref } from 'vue'
 import { supabase } from '@/plugins/supabase'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
