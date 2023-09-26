@@ -7,15 +7,21 @@
       >
       </v-app-bar-nav-icon>
 
-      <v-img
-        :class="mobileNavigation ? 'ml-2' : 'ml-4'"
-        src="@/assets/logo_rot.svg"
-        max-height="35"
-        max-width="35"
-        contain
-      />
+      <router-link to="/" style="width: 50px;">
+        <v-img
+          :class="mobileNavigation ? 'ml-2' : 'ml-4'"
+          src="@/assets/logo_rot.svg"
+          max-height="35"
+          max-width="35"
+          contain
+        />
+      </router-link>
 
-      <v-app-bar-title class="font-nistra appbar-title">SMS</v-app-bar-title>
+      <v-app-bar-title class="font-nistra appbar-title">
+        <router-link to="/" class="title-link">
+          <span>SMS</span>
+        </router-link>
+      </v-app-bar-title>
 
       <v-btn
         v-if="notifications.length > 0 && route.name !== 'Einstellungen'"
@@ -145,7 +151,6 @@ import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
 import Avatar from '@/components/Avatar.vue'
-import { watch } from 'vue'
 
 const { cookies } = useCookies()
 
@@ -271,7 +276,13 @@ export default {
 
 .appbar-title {
   font-size: 30px !important;
-  padding-top: 20px;
+  padding-top: 20px !important;
+}
+
+.title-link, .title-link:link, .title-link:visited, .title-link:hover, .title-link:active {
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--v-theme-on-surface);
 }
 
 .v-toolbar-title {
