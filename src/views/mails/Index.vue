@@ -90,12 +90,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { useRouter } from 'vue-router';
 import { supabase } from '@/plugins/supabase'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
-import moment from 'moment'
+import { format } from 'date-fns'
+import { de } from 'date-fns/locale'
 
 import PageTitle from '@/components/PageTitle.vue'
 import Avatar from '@/components/Avatar.vue';
@@ -161,7 +162,7 @@ const deleteMail = async (id) => {
 }
 
 const getDateTime = (date) => {
-  return moment(date).format('DD.MM.YYYY HH:mm')
+  return format(new Date(date), 'dd.MM.yyyy HH:mm', {locale: de})
 }
 
 const getInitials = (full_name) => {

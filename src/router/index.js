@@ -55,7 +55,7 @@ const routes = [
       },
       {
         path: 'edit',
-        name: 'Mail bearbeiten',
+        name: 'REDIRECT-mails',
         redirect: '/mails',
         children: [
           {
@@ -94,6 +94,38 @@ const routes = [
     ],
   },
   {
+    path: '/lostnfound',
+    component: () => import('@/layouts/Default.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Fundsachen',
+        component: () => import('@/views/lostnfound/Index.vue'),
+      },
+      {
+        path: 'create',
+        name: 'Fundstück erstellen',
+        component: () => import('@/views/lostnfound/Create.vue')
+      },
+      {
+        path: ':id',
+        name: 'Fundstück',
+        children: [
+          {
+            path: '',
+            name: 'Fundstück ansehen',
+            component: () => import('@/views/lostnfound/View.vue')
+          },
+          {
+            path: 'edit',
+            name: 'Fundstück bearbeiten',
+            component: () => import('@/views/lostnfound/Edit.vue')
+          },
+        ]
+      }
+    ],
+  },
+  {
     path: '/docs',
     component: () => import('@/layouts/Default.vue'),
     children: [
@@ -126,7 +158,7 @@ const routes = [
       },
       {
         path: 'member',
-        name: 'REDIRECT',
+        name: 'REDIRECT-members',
         redirect: '/members',
         children: [
           {

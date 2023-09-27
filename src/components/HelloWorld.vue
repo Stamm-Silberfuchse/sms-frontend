@@ -29,6 +29,23 @@
 
         <v-col cols="auto">
           <v-btn
+            :to="{ name: 'Fundsachen' }"
+            min-width="164"
+            variant="text"
+            class="text-none"
+          >
+            <v-icon
+              icon="mdi-tag-multiple-outline"
+              size="large"
+              start
+            />
+            Fundstücke
+          </v-btn>
+        </v-col>
+
+        <!--
+        <v-col cols="auto">
+          <v-btn
             color="primary"
             min-width="228"
             size="x-large"
@@ -44,6 +61,7 @@
             Mitglieder
           </v-btn>
         </v-col>
+        -->
 
         <v-col cols="auto">
           <v-btn

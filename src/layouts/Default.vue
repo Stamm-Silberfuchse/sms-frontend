@@ -260,6 +260,11 @@ export default {
         ]
       },
       {
+        title: 'Fundsachen',
+        icon: 'mdi-tag-multiple-outline',
+        link: '/lostnfound'
+      },
+      {
         title: 'Dokumente & Vorlagen',
         icon: 'mdi-file-document-outline',
         link: '/docs'

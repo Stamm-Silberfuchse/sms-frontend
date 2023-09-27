@@ -89,9 +89,6 @@ const photoAvailable = computed(() => {
   return user.value?.avatar_url != null && user.value?.avatar_url.length > 0
 })
 
-watch(props.memberID, (value) => {
-  fetchData()
-})
 </script>
 
 <style>

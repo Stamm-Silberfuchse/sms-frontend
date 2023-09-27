@@ -38,7 +38,7 @@ const router = useRouter()
 const props = defineProps({
   title: String,
   back: {
-    type: Boolean,
+    type: [ Boolean, Object ],
     default: false
   },
   loading: {
@@ -48,7 +48,11 @@ const props = defineProps({
 })
 
 const goBack = () => {
-  router.go(-1)
+  if(typeof(props.back) === 'object') {
+    router.push(props.back)
+  } else {
+    router.go(-1)
+  }
 }
 </script>
 

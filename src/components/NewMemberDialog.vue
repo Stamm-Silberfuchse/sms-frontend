@@ -46,12 +46,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase, getUser } from '@/plugins/supabase'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
-import moment from 'moment'
 
 const router = useRouter()
 
@@ -78,7 +77,7 @@ const createMember = async () => {
   await supabase.from('members').insert([
       {
         usr_id_create: user.id,
-        begin: moment(begin.value, "DD-MM-YYYY").format("YYYY-MM-DD")
+        begin: (new Date(begin.value)).toISOString()
       },
     ])
     .select()
