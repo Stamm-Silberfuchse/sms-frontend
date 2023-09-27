@@ -43,94 +43,97 @@
       </v-btn>
     </v-app-bar>
 
-    <v-navigation-drawer
-      v-model="drawer"
-      :expand-on-hover="!mobileNavigation"
-      :rail="!mobileNavigation"
-    >
-      <v-list nav :lines="false">
-        <div v-for="(item, i) in navProperties" :key="i">
-
-          <v-list-item
-            v-if="!item.children"
-            :to="item.link"
-            color="primary"
-          >
-            <template v-slot:prepend>
-              <v-icon>{{ item.icon }}</v-icon>
-            </template>
-            <v-list-item-title v-text="item.title"></v-list-item-title>
-          </v-list-item>
-
-          <v-list-group
-            v-else
-            :value="item.title"
-            no-action
-            color="primary"
-          >
-            <template v-slot:activator="{ props }">
-              <v-list-item
-                v-bind="props"
-                :title="item.title"
-                class="mb-0 py-2"
-              >
-                <template v-slot:prepend>
-                  <v-icon>{{ item.icon }}</v-icon>
-                </template>
-              </v-list-item>
-            </template>
+    <div :class="mobileNavigation ? 'nav-drawer-mobile' : 'nav-drawer'">
+      <v-navigation-drawer
+        v-model="drawer"
+        :expand-on-hover="!mobileNavigation"
+        :rail="!mobileNavigation"
+      >
+        <v-list nav :lines="false">
+          <div v-for="(item, i) in navProperties" :key="i">
 
             <v-list-item
-              v-for="(child, i) in item.children"
-              :key="i"
-              :title="child.title"
-              :prepend-icon="child.icon"
-              :value="child.title"
-              :to="child.link"
+              v-if="!item.children"
+              :to="item.link"
               color="primary"
-              class="sub-list-item"
-            ></v-list-item>
-          </v-list-group>
-        </div>
-      </v-list>
+            >
+              <template v-slot:prepend>
+                <v-icon>{{ item.icon }}</v-icon>
+              </template>
+              <v-list-item-title v-text="item.title"></v-list-item-title>
+            </v-list-item>
 
-      <template v-slot:append>
-        <v-list nav :lines="false">
-          <v-list-item
-            title="Einstellungen"
-            prepend-icon="mdi-cog-outline"
-            :to="{ name: 'Einstellungen' }"
-            color="primary"
-          ></v-list-item>
+            <v-list-group
+              v-else
+              :value="item.title"
+              no-action
+              color="primary"
+            >
+              <template v-slot:activator="{ props }">
+                <v-list-item
+                  v-bind="props"
+                  :title="item.title"
+                  class="mb-0 py-2"
+                >
+                  <template v-slot:prepend>
+                    <v-icon>{{ item.icon }}</v-icon>
+                  </template>
+                </v-list-item>
+              </template>
+
+              <v-list-item
+                v-for="(child, i) in item.children"
+                :key="i"
+                :title="child.title"
+                :prepend-icon="child.icon"
+                :value="child.title"
+                :to="child.link"
+                color="primary"
+                class="sub-list-item"
+              ></v-list-item>
+            </v-list-group>
+          </div>
         </v-list>
-        <v-divider />
-        <v-list-item lines="two">
-          <template v-slot:prepend>
-            <Avatar :memberID="user.id" />
-          </template>
-          <v-list-item-title v-text="user.details.display_name" />
-          <v-list-item-subtitle v-text="user.email" />
-          <template v-slot:append>
-            <v-btn icon="mdi-logout" variant="text" color="primary" @click="onSignOut"/>
-          </template>
-        </v-list-item>
-      </template>
-      <!--
-      <template v-slot:append>
-        <v-divider />
-        <v-list-item lines="two">
-          <template v-slot:prepend>
-            <v-avatar size="26px" :image="user.photoURL" />
-          </template>
-          <v-list-item-title v-text="user.displayName" />
-          <v-list-item-subtitle v-text="user.email" />
-          <template v-slot:append>
-            <v-btn icon="mdi-logout" variant="text" color="blue-lighten-3" @click="logOut()"/>
-          </template>
-        </v-list-item>
-      </template>
-      -->
-    </v-navigation-drawer>
+
+        <template v-slot:append>
+          <v-list nav :lines="false">
+            <v-list-item
+              title="Einstellungen"
+              prepend-icon="mdi-cog-outline"
+              :to="{ name: 'Einstellungen' }"
+              color="primary"
+            ></v-list-item>
+          </v-list>
+          <v-divider />
+          <v-list-item lines="two">
+            <template v-slot:prepend>
+              <Avatar :memberID="user.id" />
+            </template>
+            <v-list-item-title v-text="user.details.display_name" />
+            <v-list-item-subtitle v-text="user.email" />
+            <template v-slot:append>
+              <v-btn icon="mdi-logout" variant="text" color="primary" @click="onSignOut"/>
+            </template>
+          </v-list-item>
+        </template>
+        <!--
+        <template v-slot:append>
+          <v-divider />
+          <v-list-item lines="two">
+            <template v-slot:prepend>
+              <v-avatar size="26px" :image="user.photoURL" />
+            </template>
+            <v-list-item-title v-text="user.displayName" />
+            <v-list-item-subtitle v-text="user.email" />
+            <template v-slot:append>
+              <v-btn icon="mdi-logout" variant="text" color="blue-lighten-3" @click="logOut()"/>
+            </template>
+          </v-list-item>
+        </template>
+        -->
+      </v-navigation-drawer>
+    </div>
+
 
     <v-main class="mb-8">
       <router-view />
@@ -294,13 +297,21 @@ export default {
   line-height: unset !important;
 }
 
-.v-list-group__items .v-list-item {
+.nav-drawer > nav > div > div > div > .v-list-group > .v-list-group__items .v-list-item {
   transition: all 0.2s;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   padding-inline-start: 8px !important;
 }
 
-.v-navigation-drawer--is-hovering > div > div > div > div > .v-list-group__items > a {
+.nav-drawer > nav.v-navigation-drawer--is-hovering > div > div > div > .v-list-group > .v-list-group__items > a {
+  padding-inline-start: 20px !important;
+}
+
+.nav-drawer-mobile > nav > div > div > div > .v-list-group > .v-list-group__items .v-list-item {
+  padding-inline-start: 20px !important;
+}
+
+.v-navigation-drawer--is-hovering .sublist-mobile > div > div > div > div > .v-list-group__items > a {
   padding-inline-start: 20px !important;
 }
 
