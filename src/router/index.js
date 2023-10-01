@@ -179,6 +179,11 @@ const routes = [
           },
         ]
       },
+      {
+        path: 'categories',
+        name: 'Kategorien bearbeiten',
+        component: () => import('@/views/members/categories/Edit.vue'),
+      },
     ],
   },
   {

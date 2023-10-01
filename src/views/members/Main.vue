@@ -33,12 +33,13 @@
 
 <script setup>
 import { ref } from 'vue'
-import { toast } from 'vue3-toastify'
-import 'vue3-toastify/dist/index.css'
+import { useRouter } from 'vue-router'
 
 import PageTitle from '@/components/PageTitle.vue'
 import NewMemberDialog from '@/components/NewMemberDialog.vue'
 import MembersTable from '@/components/MembersTable.vue'
+
+const router = useRouter()
 
 const dialog = ref(false)
 
@@ -47,6 +48,6 @@ const createUser = () => {
 }
 
 const goToSettings = () => {
-  toast.info('Not implemented yet')
+  router.push({ name: 'Kategorien bearbeiten'})
 }
 </script>
