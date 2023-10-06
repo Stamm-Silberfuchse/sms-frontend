@@ -17,11 +17,11 @@
         />
       </router-link>
 
-      <v-app-bar-title class="font-nistra appbar-title">
-        <router-link to="/" class="title-link">
-          <span>SMS</span>
-        </router-link>
-      </v-app-bar-title>
+      <router-link to="/" class="title-link font-nistra appbar-title ml-3 mt-1">
+        <span>SMS</span>
+      </router-link>
+
+      <v-spacer />
 
       <v-btn
         v-if="notifications.length > 0 && route.name !== 'Einstellungen'"
@@ -296,10 +296,6 @@ export default {
   cursor: pointer;
   text-decoration: none;
   color: var(--v-theme-on-surface);
-}
-
-.v-toolbar-title {
-  line-height: unset !important;
 }
 
 .nav-drawer > nav > div > div > div > .v-list-group > .v-list-group__items .v-list-item {
