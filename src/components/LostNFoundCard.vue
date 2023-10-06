@@ -1,5 +1,5 @@
 <template>
-  <VCard class="pb-1" @click.prevent="gotoLFItem">
+  <v-card class="pb-1" @click.prevent="gotoLFItem" :ripple="false">
     <v-carousel
       :continuous="false"
       hide-delimiters
@@ -63,7 +63,7 @@
         {{ getDateTime(timestamp_create) }}
       </template>
     </v-card-item>
-  </VCard>
+  </v-card>
 </template>
 
 <script setup>
