@@ -24,7 +24,7 @@
       style="padding-left: -20px;"
     >
       <v-col cols="12" lg="4" md="6" justify="start">
-        <VCard class="pb-1">
+        <v-card class="pb-1">
           <v-carousel
             :continuous="false"
             hide-delimiters
@@ -71,6 +71,22 @@
                 </v-icon>
               </v-col>
             </v-row>
+            <div class="uploadOverlay">
+              <v-row justify="center" class="emptyRow">
+                <v-col cols="auto" align-self="end">
+                  <v-btn
+                    size="small"
+                    icon
+                    variant="text"
+                    @click="uploader.click()"
+                  >
+                    <v-icon color="primary" size="large" class="uploadIcon">
+                      mdi-camera-plus
+                    </v-icon>
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </div>
           </v-carousel>
           <v-card-item>
             <v-text-field
@@ -93,8 +109,16 @@
               ></v-icon>
               {{ getDateTime(item?.timestamp_create) }}
             </v-card-subtitle>
+            <v-file-input
+              ref="uploader"
+              v-model="imageFile"
+              accept="image/png, image/jpeg, image/bmp"
+              class="d-none"
+              type="file"
+              @update:modelValue="onFileChanged"
+            />
           </v-card-item>
-        </VCard>
+        </v-card>
       </v-col>
     </v-row>
   </v-container>
@@ -116,19 +140,24 @@ const $route = useRoute()
 
 const loading = ref(true)
 const item = ref({
-  title: ''
+  title: '',
+  description: ''
 })
 
+const uploader = ref()
+
 const title = ref('')
+const imageFile = ref(null)
 
 const fetchData = () => {
   loading.value = true
 
   // fetch member
+  // , created:profiles!lost_found_usr_id_create_fkey(id, full_name, display_name, avatar_url),\
+  // changed:profiles!lost_found_usr_id_change_fkey(id, full_name, display_name, avatar_url)
   supabase
     .from('lost_found')
-    .select('*, created:profiles!lost_found_usr_id_create_fkey(id, full_name, display_name, avatar_url),\
-                changed:profiles!lost_found_usr_id_change_fkey(id, full_name, display_name, avatar_url)')
+    .select('*')
     .eq('id', $route.params.id)
     .single()
     .then(async ({ data, error, status }) => {
@@ -161,7 +190,7 @@ const saveFundstueck = async () => {
       {
         id: item.value.id,
         title: item.value.title,
-        description: item.value.description
+        description: item.value.description,
       },
     ])
     .select()
@@ -178,4 +207,65 @@ const saveFundstueck = async () => {
       toast.error(error.message)
     })
 }
+
+const onFileChanged = async (file) => {
+  loading.value = true
+  console.log(file[0])
+  let filename = file[0].name
+  console.log(filename)
+  loading.value = false
+  /*
+  const { data, error } = await supabase
+    .storage
+    .from('fundsachen')
+    .upload('public/avatar1.png', avatarFile, {
+      cacheControl: '3600',
+      upsert: false
+    })
+
+
+  await this.$fire.storage.ref('profiles/user_' + `${this.currentUser.uid}/${timestamp}_${file.name}`).put(file)
+    .then(async () => {
+      await this.$fire.storage.ref('profiles/user_' + `${this.currentUser.uid}/${timestamp}_${file.name}`).getDownloadURL()
+        .then(async (downloadURL) => {
+          await this.$store.dispatch('user/editUser', { avatar: downloadURL })
+            .then(() => {
+              this.$fire.auth.currentUser.updateProfile({
+                photoURL: downloadURL
+              }).then(async () => {
+                me.loading = false
+                me.imageFile = null
+                await me.$toast.success('Bild wurde erfolgreich hochgeladen.')
+              }).then(() => {
+                setTimeout(() => {
+                  window.location.reload()
+                }, 1000)
+              })
+            })
+        })
+    })
+    .catch((error) => {
+      me.loading = false
+      me.$toast.error('Fehler beim Hochladen des Bildes: ' + error)
+    })
+    */
+}
 </script>
+
+<style>
+.emptyRow {
+  height: 100%;
+}
+
+.uploadOverlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  z-index: 2000;
+}
+
+.uploadIcon {
+  padding-right: 2px;
+}
+</style>
