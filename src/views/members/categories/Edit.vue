@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <PageTitle title="Kategorien & Felder" :loading="loading">
+    <PageTitle title="Kategorien & Felder" :loading="loading" back>
       <v-col>
         <v-icon
         class="pt-1"
@@ -43,18 +43,32 @@
               </v-row>
             </v-card-title>
             <v-row
-              v-for="(field, k) in fieldsByCategory(category.id)"
+              v-for="(field, k) in formDataFieldsByCategory(category.id)"
               :key="`${i}-${field.id}`"
             >
-              <v-col cols="6" class="py-1 pr-0">
-                <v-card-text class="text-body-1 font-weight-bold py-0">
-                  {{ field.name }}:
-                </v-card-text>
+              <v-col cols="8" class="py-1 pr-0">
+                <v-text-field
+                  v-model="formData[category.id]['fields'][field.id]['name']"
+                  @update:model-value="updateValue($event, field)"
+                  density="compact"
+                  variant="solo"
+                  label="Feldname"
+                  single-line
+                  hide-details
+                  class="px-4"
+                ></v-text-field>
               </v-col>
-              <v-col cols="6" class="py-1 pl-0">
-                <v-card-text class="text-body-1 py-0">
-                  -
-                </v-card-text>
+              <v-col cols="4" class="py-1 pl-0">
+                <v-text-field
+                  v-model="formData[category.id]['fields'][field.id]['type']"
+                  @update:model-value="updateValue($event, field)"
+                  density="compact"
+                  variant="solo"
+                  label="Typ"
+                  single-line
+                  hide-details
+                  class="pr-4 pl-0"
+                ></v-text-field>
               </v-col>
             </v-row>
           </v-card-text>
@@ -78,6 +92,8 @@ const loading = ref(false)
 const categories = ref([])
 const fields = ref([])
 
+const formData = ref({})
+
 const fetchData = async() => {
   loading.value = true
   console.log("Fetching synchronously...")
@@ -88,6 +104,14 @@ const fetchData = async() => {
       if (error && status !== 406) throw error
       if(data) {
         categories.value = data
+        data.forEach((el) => {
+          formData.value[el.id] = {
+            uuid: el.uuid,
+            name: el.name,
+            name_intern: el.name_intern,
+            fields: {}
+          }
+        })
       }
     })
     .catch((error) => {
@@ -101,6 +125,19 @@ const fetchData = async() => {
       if (error && status !== 406) throw error
       if(data) {
         fields.value = data
+        data.forEach((el) => {
+          let initial_value = ''
+          // TODO: convert to matching type
+          if(el.type === 'BOOL') {
+            initial_value = false
+          }
+          formData.value[el?.cat_id]["fields"][el?.id] = {
+            value: initial_value,
+            type: el.type,
+            name: el.name,
+            field_name_intern: el.name_intern
+          }
+        })
       }
     })
     .catch((error) => {
@@ -121,8 +158,9 @@ const editCategoryLocal = (id, name) => {
   categories.value.find(item => item.id === id).name = name
 }
 
-const fieldsByCategory = (cat_id) => {
-  return fields.value.filter(el => el.cat_id === cat_id)
+const formDataFieldsByCategory = (cat_id) => {
+  return Object.keys(formData.value[cat_id]?.fields)
+    .map(id => ({ id, ...formData.value[cat_id]?.fields[id] }))
 }
 
 const deleteCategory = (id) => {
@@ -136,7 +174,7 @@ const deleteCategory = (id) => {
         toast.error(error.message)
       } else {
         categories.value = categories.value.filter(item => item.id !== id)
-        toast.success('Kateogrie gelöscht.')
+        toast.success('Kategorie gelöscht.')
       }
     })
 }

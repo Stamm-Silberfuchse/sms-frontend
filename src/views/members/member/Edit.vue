@@ -196,14 +196,13 @@ const fetchData = async() => {
     })
 
   // fetch all categories
-  await supabase.from('categories').select('id, uuid, name, name_intern')
+  await supabase.from('categories').select('id, name, name_intern')
     .then(({ data, error, status }) => {
       if (error && status !== 406) throw error
       if(data) {
         categories.value = data
         data.forEach((el) => {
           formData.value[el.id] = {
-            uuid: el.uuid,
             name: el.name,
             name_intern: el.name_intern,
             fields: {}

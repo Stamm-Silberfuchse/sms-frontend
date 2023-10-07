@@ -1,5 +1,5 @@
 <template>
-  <v-dialog width="300">
+  <v-dialog width="300" @click:outside="resetForm">
     <template v-slot:activator="{ props }">
       <v-btn
         color="primary"
@@ -12,7 +12,7 @@
     </template>
     <template v-slot:default="{ isActive }">
       <v-card>
-        <v-form fast-fail>
+        <v-form fast-fail ref="formRef">
           <v-card-title>
             Neue Kategorie
           </v-card-title>
@@ -61,10 +61,11 @@ import 'vue3-toastify/dist/index.css'
 
 const loading = ref(false)
 const name = ref('')
+const formRef = ref()
+
 const categoryNameRules = ref([
   value => {
     if (value?.length > 0) return true
-
     return 'Bitte gib einen Namen für die Kategorie an.'
   },
 ])
@@ -72,6 +73,11 @@ const categoryNameRules = ref([
 const props = defineProps({
   callbackFn: Function,
 })
+
+const resetForm = () => {
+  formRef.value.reset()
+
+}
 
 const createCategory = async (isActive) => {
   loading.value = true

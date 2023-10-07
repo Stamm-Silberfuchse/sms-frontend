@@ -163,7 +163,7 @@ const fetchData = async() => {
     })
 
   // fetch all categories
-  const promise2 = supabase.from('categories').select('id, uuid, name, name_intern')
+  const promise2 = supabase.from('categories').select('id, name, name_intern')
     .then(({ data, error, status }) => {
       if (error && status !== 406) throw error
       if(data) {

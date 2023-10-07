@@ -4,16 +4,10 @@
 
     <!-- Buttons -->
     <v-row justify="start" class="mx-0 pt-0 px-3 pb-3">
+      <NewMemberDialog />
+
       <v-btn
-        color="primary"
-        @click="createUser"
-        prependIcon="mdi-account-plus"
-        class="mr-4 mb-4 text-none"
-      >
-        Anlegen
-      </v-btn>
-      <v-btn
-        @click="goToSettings"
+        @click="router.push({ name: 'Kategorien bearbeiten'})"
         prependIcon="mdi-cog-outline"
         class="mr-4 mb-4 text-none"
       >
@@ -21,8 +15,6 @@
       </v-btn>
     </v-row>
 
-    <!-- NewMemberDialog -->
-    <NewMemberDialog v-model="dialog" />
 
     <!-- MembersTable -->
     <v-row class="mx-0 px-3">
@@ -40,14 +32,4 @@ import NewMemberDialog from '@/components/NewMemberDialog.vue'
 import MembersTable from '@/components/MembersTable.vue'
 
 const router = useRouter()
-
-const dialog = ref(false)
-
-const createUser = () => {
-  dialog.value = true
-}
-
-const goToSettings = () => {
-  router.push({ name: 'Kategorien bearbeiten'})
-}
 </script>
