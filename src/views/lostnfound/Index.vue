@@ -3,14 +3,7 @@
     <PageTitle title="Fundsachen" />
 
     <v-row justify="start" class="mx-0 pt-0 px-3 pb-4">
-      <v-btn
-        color="primary"
-        @click="createFundstueck"
-        prependIcon="mdi-tag-plus-outline"
-        class="mr-4 mb-4 text-none"
-      >
-        Einstellen
-      </v-btn>
+      <NewFundstueckDialog />
     </v-row>
 
     <v-row
@@ -48,6 +41,7 @@ import 'vue3-toastify/dist/index.css'
 
 import PageTitle from '@/components/PageTitle.vue'
 import LostNFoundCard from '@/components/LostNFoundCard.vue'
+import NewFundstueckDialog from '@/components/NewFundstueckDialog.vue'
 
 const router = useRouter()
 
