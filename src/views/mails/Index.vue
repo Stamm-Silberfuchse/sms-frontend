@@ -99,7 +99,7 @@ import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
 
 import PageTitle from '@/components/PageTitle.vue'
-import Avatar from '@/components/Avatar.vue';
+import Avatar from '@/components/Avatar.vue'
 
 const router = useRouter()
 
