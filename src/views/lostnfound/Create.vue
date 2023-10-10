@@ -110,7 +110,7 @@ const item = ref({
 
 const saveFundstueck = async () => {
   supabase
-    .from('lost_found')
+    .from('fundstuecke')
     .insert({
       title: item.value.title,
       description: item.value.description,

@@ -1,5 +1,5 @@
 <template>
-  <v-card class="pb-1" @click.prevent="gotoLFItem" :ripple="false">
+  <v-card class="pb-1" @click.prevent="gotoFundstueck" :ripple="false">
     <v-carousel
       :continuous="false"
       hide-delimiters
@@ -8,7 +8,7 @@
     >
       <template v-slot:prev="{ props }">
         <v-btn
-          v-if="photoURLs.length > 1"
+          v-if="photos.length > 1"
           size="small"
           icon
           variant="tonal"
@@ -21,7 +21,7 @@
       </template>
       <template v-slot:next="{ props }">
         <v-btn
-          v-if="photoURLs.length > 1"
+          v-if="photos.length > 1"
           size="small"
           icon
           variant="tonal"
@@ -33,12 +33,26 @@
         </v-btn>
       </template>
       <v-carousel-item
-        v-if="photoURLs.length > 0"
-        v-for="(photoURL,i) in photoURLs"
+        v-if="hasPhotos > 0"
+        v-for="(photoURL,i) in photos"
         :key="i"
-        :src="photoURL"
         cover
-      ></v-carousel-item>
+      >
+        <v-img
+          :src="photoURL"
+          :aspect-ratio="1"
+          cover
+        >
+        <template v-slot:placeholder>
+          <div class="d-flex align-center justify-center fill-height">
+            <v-progress-circular
+              color="grey-lighten-4"
+              indeterminate
+            ></v-progress-circular>
+          </div>
+        </template>
+        </v-img>
+      </v-carousel-item>
       <v-row justify="center" v-else class="empty-row">
         <v-col cols="auto" align-self="center">
           <v-icon size="40px" color="grey">
@@ -47,7 +61,7 @@
         </v-col>
       </v-row>
     </v-carousel>
-    <v-card-title>
+    <v-card-title class="pt-3">
       {{ title }}
     </v-card-title>
     <v-card-subtitle>
@@ -67,6 +81,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
@@ -86,7 +101,7 @@ const props = defineProps({
     type: Number,
     required: true
   },
-  photoURLs: {
+  images: {
     type: Array,
     default: () => []
   },
@@ -96,13 +111,26 @@ const props = defineProps({
   }
 })
 
-const gotoLFItem = () => {
+const gotoFundstueck = () => {
   router.push({ name: 'Fundstück ansehen', params: { id: props.id } })
 }
 
 const getDateTime = (date) => {
   return format(new Date(date), 'EEEEEE, dd.MM.yyyy HH:mm', {locale: de})
 }
+
+const photos = computed(() => {
+  if(props.images[0]?.id === null) return []
+  return props.images.map((image) => {
+    console.log(image)
+    return image.downloadURL
+  })
+})
+
+const hasPhotos = computed(() => {
+  console.log(props.images)
+  return props.images[0]?.id !== null
+})
 </script>
 
 <style>

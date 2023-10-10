@@ -31,7 +31,7 @@
       style="padding-left: -20px;"
     >
       <v-col cols="12" lg="4" md="6" justify="start">
-        <VCard class="pb-1">
+        <v-card class="pb-1">
           <v-carousel
             :continuous="false"
             hide-delimiters
@@ -39,7 +39,7 @@
           >
             <template v-slot:prev="{ props }">
               <v-btn
-                v-if="item?.photoURLs?.length > 1"
+                v-if="photos.length > 1"
                 size="small"
                 icon
                 variant="tonal"
@@ -52,7 +52,7 @@
             </template>
             <template v-slot:next="{ props }">
               <v-btn
-                v-if="item?.photoURLs?.length > 1"
+                v-if="photos.length > 1"
                 size="small"
                 icon
                 variant="tonal"
@@ -64,12 +64,25 @@
               </v-btn>
             </template>
             <v-carousel-item
-              v-if="item?.photoURLs?.length > 0"
-              v-for="(photoURL,i) in item?.photoURLs"
+              v-if="hasPhotos > 0"
+              v-for="(photoURL,i) in photos"
               :key="i"
-              :src="photoURL"
-              cover
-            ></v-carousel-item>
+            >
+              <v-img
+                :src="photoURL"
+                :aspect-ratio="1"
+                cover
+              >
+              <template v-slot:placeholder>
+                <div class="d-flex align-center justify-center fill-height">
+                  <v-progress-circular
+                    color="grey-lighten-4"
+                    indeterminate
+                  ></v-progress-circular>
+                </div>
+              </template>
+              </v-img>
+            </v-carousel-item>
             <v-row justify="center" v-else class="empty-row">
               <v-col cols="auto" align-self="center">
                 <v-icon size="40px" color="grey">
@@ -78,7 +91,7 @@
               </v-col>
             </v-row>
           </v-carousel>
-          <v-card-title>
+          <v-card-title class="pt-4">
             {{ item?.title }}
           </v-card-title>
           <v-card-subtitle>
@@ -94,14 +107,14 @@
               {{ getDateTime(item?.timestamp_create) }}
             </template>
           </v-card-item>
-        </VCard>
+        </v-card>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { supabase } from '@/plugins/supabase'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue3-toastify'
@@ -110,7 +123,6 @@ import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
 
 import PageTitle from '@/components/PageTitle.vue'
-import router from '@/router'
 
 const $route = useRoute()
 const $router = useRouter()
@@ -122,26 +134,13 @@ const item = ref(null)
 const fetchData = () => {
   loading.value = true
 
-  // fetch member
-  supabase
-    .from('lost_found')
-    .select('*, created:profiles!lost_found_usr_id_create_fkey(id, full_name, display_name, avatar_url),\
-                changed:profiles!lost_found_usr_id_change_fkey(id, full_name, display_name, avatar_url)')
-    .eq('id', $route.params.id)
-    .single()
-    .then(async ({ data, error, status }) => {
-      if (error && status !== 406) throw error
+  supabase.rpc('get_fundstuecke_with_images_by_id', { fund_id: $route.params.id })
+    .then(async ({ data, error }) => {
+      if (error) throw error
       if(data) {
-        console.log(data)
-        item.value = data
+        item.value = data[0]
+        loading.value = false
       }
-    })
-    .catch((error) => {
-      console.log(error)
-      toast.error(error.message)
-    })
-    .finally(() =>{
-      loading.value = false
     })
 }
 
@@ -153,7 +152,7 @@ const getDateTime = (timestamp) => {
 
 const deleteFundstueck = async () => {
   supabase
-    .from('lost_found')
+    .from('fundstuecke')
     .delete()
     .eq('id', $route.params.id)
     .then(async ({ error }) => {
@@ -166,4 +165,22 @@ const deleteFundstueck = async () => {
       }
     })
 }
+
+const photos = computed(() => {
+  if(item.value.images[0].id === null) return []
+  return item.value.images.map((image) => {
+    return image.downloadURL
+  })
+})
+
+const hasPhotos = computed(() => {
+  if(item.value === null) return false
+  return item.value.images[0]?.id !== null
+})
 </script>
+
+<style>
+.v-carousel {
+  background-color: #EEEEEE;
+}
+</style>

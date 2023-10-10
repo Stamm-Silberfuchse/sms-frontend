@@ -29,11 +29,11 @@
             :continuous="false"
             hide-delimiters
             height="350px"
-            style="pointer: cursor;"
+            v-model="carouselIndex"
           >
             <template v-slot:prev="{ props }">
               <v-btn
-                v-if="item?.photoURLs?.length > 1"
+                v-if="photos.length > 1"
                 size="small"
                 icon
                 variant="tonal"
@@ -46,7 +46,7 @@
             </template>
             <template v-slot:next="{ props }">
               <v-btn
-                v-if="item?.photoURLs?.length > 1"
+                v-if="photos.length > 1"
                 size="small"
                 icon
                 variant="tonal"
@@ -58,12 +58,26 @@
               </v-btn>
             </template>
             <v-carousel-item
-              v-if="item?.photoURLs?.length > 0"
-              v-for="(photoURL,i) in item?.photoURLs"
+            v-if="hasPhotos > 0"
+              v-for="(photoURL,i) in photos"
               :key="i"
-              :src="photoURL"
-              cover
-            ></v-carousel-item>
+              :value="i"
+            >
+              <v-img
+                :src="photoURL"
+                :aspect-ratio="1"
+                cover
+              >
+              <template v-slot:placeholder>
+                <div class="d-flex align-center justify-center fill-height">
+                  <v-progress-circular
+                    color="grey-lighten-4"
+                    indeterminate
+                  ></v-progress-circular>
+                </div>
+              </template>
+              </v-img>
+            </v-carousel-item>
             <v-row justify="center" v-else class="empty-row">
               <v-col cols="auto" align-self="center">
                 <v-icon size="40px" color="grey">
@@ -71,21 +85,31 @@
                 </v-icon>
               </v-col>
             </v-row>
-            <div class="uploadOverlay">
-              <v-row justify="center" class="emptyRow">
-                <v-col cols="auto" align-self="end">
-                  <v-btn
-                    size="small"
-                    icon
-                    variant="text"
-                    @click="uploader.click()"
-                  >
-                    <v-icon color="primary" size="large" class="uploadIcon">
-                      mdi-camera-plus
-                    </v-icon>
-                  </v-btn>
-                </v-col>
-              </v-row>
+            <div class="deleteOverlay">
+              <div class="uploadButton">
+                <v-btn
+                  size="small"
+                  icon
+                  variant="tonal"
+                  @click="uploader.click()"
+                >
+                  <v-icon color="primary" size="x-large">
+                    mdi-camera-plus
+                  </v-icon>
+                </v-btn>
+              </div>
+              <div class="deleteButton">
+                <v-btn
+                  size="small"
+                  icon
+                  variant="tonal"
+                  @click="deleteImage"
+                >
+                  <v-icon color="primary" size="x-large">
+                    mdi-delete
+                  </v-icon>
+                </v-btn>
+              </div>
             </div>
           </v-carousel>
           <v-card-item>
@@ -125,7 +149,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { supabase } from '@/plugins/supabase'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
@@ -141,7 +165,8 @@ const $route = useRoute()
 const loading = ref(true)
 const item = ref({
   title: '',
-  description: ''
+  description: '',
+  photoURLs: [],
 })
 
 const uploader = ref()
@@ -149,30 +174,22 @@ const uploader = ref()
 const title = ref('')
 const imageFile = ref(null)
 
+const carouselIndex = ref(0)
+
 const fetchData = () => {
   loading.value = true
 
   // fetch member
-  // , created:profiles!lost_found_usr_id_create_fkey(id, full_name, display_name, avatar_url),\
-  // changed:profiles!lost_found_usr_id_change_fkey(id, full_name, display_name, avatar_url)
-  supabase
-    .from('lost_found')
-    .select('*')
-    .eq('id', $route.params.id)
-    .single()
-    .then(async ({ data, error, status }) => {
-      if (error && status !== 406) throw error
+  // , created:profiles!fundstuecke_usr_id_create_fkey(id, full_name, display_name, avatar_url),\
+  // changed:profiles!fundstuecke_usr_id_change_fkey(id, full_name, display_name, avatar_url)
+  supabase.rpc('get_fundstuecke_with_images_by_id', { fund_id: $route.params.id })
+    .then(async ({ data, error }) => {
+      if (error) throw error
       if(data) {
-        title.value = data.title
-        item.value = data
+        item.value = data[0]
+        title.value = data[0].title
+        loading.value = false
       }
-    })
-    .catch((error) => {
-      console.log(error)
-      toast.error(error.message)
-    })
-    .finally(() =>{
-      loading.value = false
     })
 }
 
@@ -185,7 +202,7 @@ const getDateTime = (timestamp) => {
 const saveFundstueck = async () => {
   console.log(item)
   supabase
-    .from('lost_found')
+    .from('fundstuecke')
     .upsert([
       {
         id: item.value.id,
@@ -196,76 +213,136 @@ const saveFundstueck = async () => {
     .select()
     .then(({ data, error, status }) => {
       if (error && status !== 406) throw error
-
       if(data) {
         toast.success("Änderungen gespeichert.")
         router.push({ name: 'Fundstück ansehen', params: { id: item.value.id } })
       }
     })
     .catch((error) => {
-      console.log(error)
+      console.error(error)
       toast.error(error.message)
     })
 }
 
-const onFileChanged = async (file) => {
+const onFileChanged = async () => {
   loading.value = true
-  console.log(file[0])
-  let filename = file[0].name
-  console.log(filename)
-  loading.value = false
-  /*
+  let filename = imageFile.value[0].name
+  const date = format(new Date(), 'yyyy-MM-dd-HH-mm-ss')
+  filename = `${date}_${item.value.id}_${filename}`
+  // upload image
+  var { data, error } = await supabase.storage
+    .from('fundstuecke')
+    .upload(filename, imageFile.value[0], {
+      cacheControl: '3600',
+      upsert: true
+    })
+  if(error) {
+    console.error(error)
+    toast.error(error.message)
+    throw error
+  }
+  // retrieve public URL
+  const url = supabase.storage
+    .from('fundstuecke')
+    .getPublicUrl(data.path)
+  // add image to database
+  var { data, error } = await supabase
+    .from('images')
+    .insert({
+      path: data.path,
+      downloadURL: url.data.publicUrl
+    })
+    .select()
+  if(error) {
+    console.error(error)
+    toast.error(error.message)
+    throw error
+  }
+  // add relationship between image and fundstueck
+  var { data, error } = await supabase
+    .from('fundstuecke_images')
+    .insert({
+      fundstueck_id: item.value.id,
+      image_id: data[0].id
+    })
+    .select()
+  if(error) {
+    console.error(error)
+    toast.error(error.message)
+    throw error
+  }
+  toast.success('Bild hochgeladen.')
+  fetchData()
+}
+
+const deleteImage = async () => {
   const { data, error } = await supabase
     .storage
-    .from('fundsachen')
-    .upload('public/avatar1.png', avatarFile, {
-      cacheControl: '3600',
-      upsert: false
-    })
+    .from('fundstuecke')
+    .remove([])
 
 
-  await this.$fire.storage.ref('profiles/user_' + `${this.currentUser.uid}/${timestamp}_${file.name}`).put(file)
-    .then(async () => {
-      await this.$fire.storage.ref('profiles/user_' + `${this.currentUser.uid}/${timestamp}_${file.name}`).getDownloadURL()
-        .then(async (downloadURL) => {
-          await this.$store.dispatch('user/editUser', { avatar: downloadURL })
-            .then(() => {
-              this.$fire.auth.currentUser.updateProfile({
-                photoURL: downloadURL
-              }).then(async () => {
-                me.loading = false
-                me.imageFile = null
-                await me.$toast.success('Bild wurde erfolgreich hochgeladen.')
-              }).then(() => {
-                setTimeout(() => {
-                  window.location.reload()
-                }, 1000)
-              })
-            })
-        })
-    })
-    .catch((error) => {
-      me.loading = false
-      me.$toast.error('Fehler beim Hochladen des Bildes: ' + error)
-    })
-    */
+  supabase.from('fundstuecke').upsert({
+    id: uuid.id,
+    avatar_url: null
+  })
+  .select()
+  .then(({ data, error }) => {
+    console.log(error, data)
+    userStore.setAvatarURL(null)
+    toast.success('Bild wurde entfernt.')
+    loading.value = false
+  })
 }
+
+const photos = computed(() => {
+  if(item.value.images[0].id === null) return []
+  return item.value.images.map((image) => {
+    return image.downloadURL
+  })
+})
+
+const hasPhotos = computed(() => {
+  if(item.value === null) return false
+  return item.value.images[0]?.id !== null
+})
+
 </script>
 
 <style>
-.emptyRow {
-  height: 100%;
-}
 
 .uploadOverlay {
   position: absolute;
   width: 100%;
   height: 100%;
   background-color: transparent;
-  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
 }
 
-.uploadIcon {
-  padding-right: 2px;
+.uploadButton {
+  margin-top: 10px;
+  margin-right: 10px;
+}
+
+.deleteOverlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  display: flex;
+  justify-content: right;
+  align-items: start;
+}
+
+.deleteButton {
+  margin-top: auto;
+  margin-top: 10px;
+  margin-right: 10px;
+}
+
+.v-carousel {
+  background-color: #EEEEEE;
 }
 </style>

@@ -5,7 +5,7 @@
     <v-row justify="start" class="mx-0 pt-0 px-3 pb-4">
       <v-btn
         color="primary"
-        @click="createLFItem"
+        @click="createFundstueck"
         prependIcon="mdi-tag-plus-outline"
         class="mr-4 mb-4 text-none"
       >
@@ -31,7 +31,7 @@
           :title="item.title"
           :description="item.description"
           :id="item.id"
-          :photoURLs="item.photoURLs"
+          :images="item.images"
           :timestamp_create="item.timestamp_create"
         ></LostNFoundCard>
       </v-col>
@@ -55,15 +55,23 @@ const loading = ref(true)
 const items = ref([])
 
 const fetchData = () => {
+  supabase.rpc('get_fundstuecke_with_images')
+    .then(async ({ data, error }) => {
+      if (error) throw error
+      if(data) {
+        items.value = data
+      }
+    })
+
+  /*
   supabase
-    .from('lost_found')
-    .select('*, created:profiles!lost_found_usr_id_create_fkey(id, full_name, display_name, avatar_url),\
-                changed:profiles!lost_found_usr_id_change_fkey(id, full_name, display_name, avatar_url)')
+    .from('fundstuecke')
+    .select('*, created:profiles!fundstuecke_usr_id_create_fkey(id, full_name, display_name, avatar_url),\
+                changed:profiles!fundstuecke_usr_id_change_fkey(id, full_name, display_name, avatar_url)')
     .order('timestamp_create', { ascending: false })
     .then(async ({ data, error, status }) => {
       if (error && status !== 406) throw error
       if(data) {
-        console.log(data)
         items.value = data
       }
     })
@@ -74,41 +82,23 @@ const fetchData = () => {
     .finally(() =>{
       loading.value = false
     })
+  */
 }
 
 fetchData()
 
-const createLFItem = () => {
+const createFundstueck = () => {
   router.push({ name: 'Fundstück erstellen' })
 }
 
-const editLists = () => {
-  toast.info('Not implemented yet')
-}
-
-const goToSettings = () => {
-  toast.info('Not implemented yet')
-}
-
-const deleteMail = async (id) => {
-  supabase
-    .from('emails')
-    .delete()
-    .eq('id', id)
-    .then(async ({ error }) => {
-      if(error) {
-        throw error
-        tonUpdated, oast.error(error.message)
-      } else {
-        emails.value = emails.value.filter(el => el.id !== id)
-        toast.success('Mail gelöscht.')
-      }
-    })
-}
 </script>
 
 <style>
 .mail-title {
   margin-top: -6px;
+}
+
+.v-carousel {
+  background-color: #EEEEEE;
 }
 </style>
