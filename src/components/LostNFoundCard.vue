@@ -122,13 +122,11 @@ const getDateTime = (date) => {
 const photos = computed(() => {
   if(props.images[0]?.id === null) return []
   return props.images.map((image) => {
-    console.log(image)
     return image.downloadURL
   })
 })
 
 const hasPhotos = computed(() => {
-  console.log(props.images)
   return props.images[0]?.id !== null
 })
 </script>
