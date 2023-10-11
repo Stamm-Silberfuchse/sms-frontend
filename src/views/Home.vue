@@ -1,7 +1,11 @@
 <template>
-  <v-container>
-    <PageTitle title="Dashboard" />
-    <HelloWorld />
+  <v-container class="fill-height">
+    <v-responsive class="fill-height">
+      <div class="main-div">
+        <PageTitle title="Dashboard" />
+        <HelloWorld />
+      </div>
+    </v-responsive>
   </v-container>
 </template>
 
