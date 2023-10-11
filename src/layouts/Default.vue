@@ -135,9 +135,17 @@
     </div>
 
 
-    <v-main class="mb-8">
+    <v-main>
       <router-view />
     </v-main>
+    <v-footer style="background-color: var(--v-theme-background); border-top: 1px solid #AAA; max-height: 50px;">
+      <v-row justify="end" no-gutters>
+        <v-spacer />
+        <v-col class="my-3" cols="auto">
+          {{ new Date().getFullYear() }} — <strong>Stamm Silberfüchse</strong>
+        </v-col>
+      </v-row>
+    </v-footer>
   </v-app>
 </template>
 
