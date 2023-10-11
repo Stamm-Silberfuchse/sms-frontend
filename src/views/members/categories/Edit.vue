@@ -23,7 +23,7 @@
       class="mx-0 mt-0 mb-4"
       style="padding-left: -20px;"
     >
-      <v-col cols="12" lg="4" md="6" justify="start" v-for="(category, i) in categories">
+      <v-col cols="12" lg="4" md="6" justify="start" v-for="(category, i) in categories.a">
         <v-card width="100%">
           <v-card-text class="mb-6">
             <v-card-title class="text-h5 text--primary mb-5">
@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { supabase } from '@/plugins/supabase'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
@@ -89,7 +89,7 @@ import NewCategoryDialog from '@/components/NewCategoryDialog.vue'
 import EditCategoryDialog from '@/components/EditCategoryDialog.vue'
 
 const loading = ref(false)
-const categories = ref([])
+const categories = reactive({ a: [ { name: '' } ] })
 const fields = ref([])
 
 const formData = ref({})
@@ -103,7 +103,7 @@ const fetchData = async() => {
     .then(({ data, error, status }) => {
       if (error && status !== 406) throw error
       if(data) {
-        categories.value = data
+        categories.a = data
         data.forEach((el) => {
           formData.value[el.id] = {
             uuid: el.uuid,
@@ -151,14 +151,17 @@ const fetchData = async() => {
 fetchData()
 
 const addCategoryLocal = (newCategory) => {
-  categories.value.push(newCategory)
+  console.log('editCategoryLocal', newCategory)
+  categories.a.push(newCategory)
+  // fetchData()
 }
 
 const editCategoryLocal = (id, name) => {
-  categories.value.find(item => item.id === id).name = name
+  categories.a.find(item => item.id === id).name = name
 }
 
 const formDataFieldsByCategory = (cat_id) => {
+  if(formData.value[cat_id] === undefined) return []
   return Object.keys(formData.value[cat_id]?.fields)
     .map(id => ({ id, ...formData.value[cat_id]?.fields[id] }))
 }
@@ -173,7 +176,7 @@ const deleteCategory = (id) => {
         console.error(error)
         toast.error(error.message)
       } else {
-        categories.value = categories.value.filter(item => item.id !== id)
+        categories.a = categories.a.filter(item => item.id !== id)
         toast.success('Kategorie gelöscht.')
       }
     })
