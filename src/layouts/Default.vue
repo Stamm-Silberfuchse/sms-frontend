@@ -139,8 +139,7 @@
       <router-view />
     </v-main>
     <v-footer style="background-color: var(--v-theme-background); border-top: 1px solid #AAA; max-height: 50px;">
-      <v-row justify="end" no-gutters>
-        <v-spacer />
+      <v-row justify="center" no-gutters>
         <v-col class="my-3" cols="auto">
           {{ new Date().getFullYear() }} — <strong>Stamm Silberfüchse</strong>
         </v-col>
@@ -150,7 +149,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
 import { signOut } from '@/plugins/supabase'

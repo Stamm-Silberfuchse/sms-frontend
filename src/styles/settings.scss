@@ -52,3 +52,13 @@
     justify-content: center;
     width: 100%;
 }
+
+.v-footer {
+    margin-left: 56px;
+}
+
+@media screen and (max-width: 1279px) {
+    .v-footer {
+        margin-left: 0px;
+    }
+}
