@@ -12,7 +12,6 @@
           v-if="photoAvailable"
           :src="user?.avatar_url"
           :alt="user?.full_name"
-          :title="user?.full_name"
           :aspect-ratio="1"
           class="elevation-2"
         ></v-img>
@@ -22,8 +21,9 @@
         <v-tooltip
           activator="parent"
           :location="tooltipLocation"
+          class="text-pre-wrap"
         >
-          {{ user?.full_name }}
+          {{ tooltipAppend }}{{ user?.full_name }}
         </v-tooltip>
       </v-avatar>
     </template>
@@ -55,6 +55,10 @@ const props = defineProps({
   tooltipLocation: {
     type: String,
     default: 'end'
+  },
+  tooltipAppend: {
+    type: String,
+    default: ''
   }
 })
 
