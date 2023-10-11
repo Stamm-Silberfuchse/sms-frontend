@@ -93,8 +93,9 @@ const editCategory = async (isActive) => {
   await supabase.from('categories').upsert([
       {
         id: props.id,
-        name: props.name,
-        usr_id_create: user.id
+        name: name.value,
+        usr_id_change: user.id,
+        timestamp_change: new Date()
       },
     ])
     .select()
