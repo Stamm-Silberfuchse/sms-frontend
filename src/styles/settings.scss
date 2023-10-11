@@ -34,3 +34,21 @@
         padding-right: 3px;
     }    
 }
+
+.fill-height > .v-responsive__content {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+}
+
+.main-div {
+    width: 100%;
+}
+
+.bottom-info {
+    display: flex;
+    flex:1;
+    align-items: flex-end;
+    justify-content: center;
+    width: 100%;
+}
