@@ -38,7 +38,7 @@
                     v-if="photos.length > 1"
                     size="small"
                     icon
-                    variant="tonal"
+                    color="primary"
                     @click.native.capture.stop="props.onClick"
                   >
                     <v-icon color="white" size="x-large">
@@ -51,7 +51,7 @@
                     v-if="photos.length > 1"
                     size="small"
                     icon
-                    variant="tonal"
+                    color="primary"
                     @click.native.capture.stop="props.onClick"
                   >
                     <v-icon color="white" size="x-large">
@@ -92,10 +92,10 @@
                     <v-btn
                       size="small"
                       icon
-                      variant="tonal"
+                      color="primary"
                       @click="uploader.click()"
                     >
-                      <v-icon color="primary" size="x-large">
+                      <v-icon size="large">
                         mdi-camera-plus
                       </v-icon>
                     </v-btn>
@@ -104,10 +104,10 @@
                     <v-btn
                       size="small"
                       icon
-                      variant="tonal"
+                      color="primary"
                       @click="deleteImage"
                     >
-                      <v-icon color="primary" size="x-large">
+                      <v-icon size="large">
                         mdi-delete
                       </v-icon>
                     </v-btn>
@@ -159,8 +159,10 @@
 
       <div class="bottom-info mt-6">
         <div class="text-center font-weight-light" style="font-size: 14px;">
-          erstellt von <b>Johannes Michaelis</b> am 18.02.2003, 12:00<br>
-          zuletzt bearbeitet von <b>Johannes Michaelis</b> am 18.02.2003, 12:00
+          <p>erstellt von <b>{{ item?.user_create[0].display_name }}</b> am {{ date_created }}</p>
+          <p v-if="item?.timestamp_change != null">
+            zuletzt bearbeitet von <b>{{ item?.user_change[0].display_name }}</b> am {{ date_changed }}
+          </p>
         </div>
       </div>
     </v-responsive>
@@ -180,14 +182,12 @@ import PageTitle from '@/components/PageTitle.vue'
 import Avatar from '@/components/Avatar.vue'
 import router from '@/router'
 
+import { useUserStore } from '@/store/user'
+
 const $route = useRoute()
 
 const loading = ref(true)
-const item = ref({
-  title: '',
-  description: '',
-  photoURLs: [],
-})
+const item = ref(null)
 
 const uploader = ref()
 
@@ -196,16 +196,19 @@ const imageFile = ref(null)
 
 const carouselIndex = ref(0)
 
+const userStore = useUserStore()
+
 const fetchData = () => {
   loading.value = true
 
   // fetch member
   // , created:profiles!fundstuecke_usr_id_create_fkey(id, full_name, display_name, avatar_url),\
   // changed:profiles!fundstuecke_usr_id_change_fkey(id, full_name, display_name, avatar_url)
-  supabase.rpc('get_fundstuecke_with_images_by_id', { fund_id: $route.params.id })
+  supabase.rpc('get_fundstuecke_with_images_by_id2', { fund_id: $route.params.id })
     .then(async ({ data, error }) => {
       if (error) throw error
       if(data) {
+        console.log(data[0])
         item.value = data[0]
         title.value = data[0].title
         loading.value = false
@@ -228,6 +231,8 @@ const saveFundstueck = async () => {
         id: item.value.id,
         title: item.value.title,
         description: item.value.description,
+        usr_id_change: userStore.id,
+        timestamp_change: new Date()
       },
     ])
     .select()
@@ -327,10 +332,19 @@ const hasPhotos = computed(() => {
   return item.value.images[0]?.id !== null
 })
 
+const date_created = computed(() => {
+  if(item.value === null) return ''
+  return format(new Date(item.value?.timestamp_create), 'dd.MM.yyyy, HH:mm', {locale: de})
+})
+
+const date_changed = computed(() => {
+  if(item.value === null) return ''
+  return format(new Date(item.value?.timestamp_change), 'dd.MM.yyyy, HH:mm', {locale: de})
+})
+
 </script>
 
 <style>
-
 .uploadOverlay {
   position: absolute;
   width: 100%;

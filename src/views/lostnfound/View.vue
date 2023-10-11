@@ -44,7 +44,7 @@
                     v-if="photos.length > 1"
                     size="small"
                     icon
-                    variant="tonal"
+                    color="primary"
                     @click.native.capture.stop="props.onClick"
                   >
                     <v-icon color="white" size="x-large">
@@ -57,7 +57,7 @@
                     v-if="photos.length > 1"
                     size="small"
                     icon
-                    variant="tonal"
+                    color="primary"
                     @click.native.capture.stop="props.onClick"
                   >
                     <v-icon color="white" size="x-large">
@@ -130,8 +130,10 @@
 
       <div class="bottom-info mt-6">
         <div class="text-center font-weight-light" style="font-size: 14px;">
-          erstellt von <b>Johannes Michaelis</b> am 18.02.2003, 12:00<br>
-          zuletzt bearbeitet von <b>Johannes Michaelis</b> am 18.02.2003, 12:00
+          <p>erstellt von <b>{{ item?.user_create[0].display_name }}</b> am {{ date_created }}</p>
+          <p v-if="item?.user_change[0] != null">
+            zuletzt bearbeitet von <b>{{ item?.user_change[0].display_name }}</b> am {{ date_changed }}
+          </p>
         </div>
       </div>
     </v-responsive>
@@ -160,10 +162,11 @@ const item = ref(null)
 const fetchData = () => {
   loading.value = true
 
-  supabase.rpc('get_fundstuecke_with_images_by_id', { fund_id: $route.params.id })
+  supabase.rpc('get_fundstuecke_with_images_by_id2', { fund_id: $route.params.id })
     .then(async ({ data, error }) => {
       if (error) throw error
       if(data) {
+        console.log(data[0])
         item.value = data[0]
         loading.value = false
       }
@@ -173,7 +176,7 @@ const fetchData = () => {
 fetchData()
 
 const getDateTime = (timestamp) => {
-  return format(new Date(timestamp), 'EEEEEE, dd.MM.yyyy HH:mm', {locale: de})
+  return format(new Date(timestamp), 'EEEEEE, dd.MM.yyyy', {locale: de})
 }
 
 const deleteFundstueck = async () => {
@@ -202,6 +205,16 @@ const photos = computed(() => {
 const hasPhotos = computed(() => {
   if(item.value === null) return false
   return item.value.images[0]?.id !== null
+})
+
+const date_created = computed(() => {
+  if(item.value === null) return ''
+  return format(new Date(item.value?.timestamp_create), 'dd.MM.yyyy, HH:mm', {locale: de})
+})
+
+const date_changed = computed(() => {
+  if(item.value === null) return ''
+  return format(new Date(item.value?.timestamp_change), 'dd.MM.yyyy, HH:mm', {locale: de})
 })
 </script>
 

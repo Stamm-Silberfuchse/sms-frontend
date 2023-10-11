@@ -11,7 +11,7 @@
           v-if="photos.length > 1"
           size="small"
           icon
-          variant="tonal"
+          color="primary"
           @click.native.capture.stop="props.onClick"
         >
           <v-icon color="white" size="x-large">
@@ -24,7 +24,7 @@
           v-if="photos.length > 1"
           size="small"
           icon
-          variant="tonal"
+          color="primary"
           @click.native.capture.stop="props.onClick"
         >
           <v-icon color="white" size="x-large">
