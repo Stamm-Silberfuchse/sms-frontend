@@ -1,11 +1,9 @@
 // Utilities
 import { defineStore } from 'pinia'
 import { supabase } from '@/plugins/supabase'
-import { toast } from 'vue3-toastify'
-import 'vue3-toastify/dist/index.css';
 
 
-export const useUserStore = defineStore('user', {
+export const useAuthStore = defineStore('auth', {
   state: () => ({
     id: null,
     email: null,
