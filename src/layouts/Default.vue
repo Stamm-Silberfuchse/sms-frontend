@@ -138,6 +138,7 @@
     <v-main>
       <router-view />
     </v-main>
+    <!--
     <v-footer style="background-color: var(--v-theme-background); border-top: 1px solid #AAA; max-height: 50px;">
       <v-row justify="center" no-gutters>
         <v-col class="my-3" cols="auto">
@@ -145,6 +146,7 @@
         </v-col>
       </v-row>
     </v-footer>
+    -->
   </v-app>
 </template>
 
