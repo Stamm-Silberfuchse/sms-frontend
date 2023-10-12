@@ -23,14 +23,23 @@
       class="mx-0 mt-0 mb-4"
       style="padding-left: -20px;"
     >
-      <v-col cols="12" lg="4" md="6" justify="start" v-for="(category, i) in categories.a">
+      <v-col cols="12" md="6" justify="start" v-for="(category, i) in categories.a">
         <v-card width="100%">
           <v-card-text class="mb-6">
             <v-card-title class="text-h5 text--primary mb-5">
               <v-row class="mx-0 mt-0 pb-2">
                 {{ category.name }}
                 <v-spacer></v-spacer>
-                <EditCategoryDialog :id="category.id" :name="category.name" :callbackFn="editCategoryLocal" />
+                <AddCategoryFieldDialog
+                  :categoryName="category.name"
+                  :categoryID="category.id"
+                  :callbackFn="addFieldLocal"
+                />
+                <EditCategoryDialog
+                  :id="category.id"
+                  :name="category.name"
+                  :callbackFn="editCategoryLocal"
+                />
                 <v-btn
                   icon
                   variant="flat"
@@ -45,8 +54,15 @@
             <v-row
               v-for="(field, k) in formDataFieldsByCategory(category.id)"
               :key="`${i}-${field.id}`"
+              class="px-3"
+              justify="center"
             >
-              <v-col cols="8" class="py-1 pr-0">
+              <v-col cols="1" class="py-1 px-0" align="center">
+                <v-icon color="grey-lighten-1 my-auto">
+                  mdi-dots-vertical
+                </v-icon>
+              </v-col>
+              <v-col cols="7" class="py-1 px-0">
                 <v-text-field
                   v-model="formData[category.id]['fields'][field.id]['name']"
                   @update:model-value="updateValue($event, field)"
@@ -58,17 +74,35 @@
                   class="px-4"
                 ></v-text-field>
               </v-col>
-              <v-col cols="4" class="py-1 pl-0">
-                <v-text-field
+              <v-col cols="3" class="py-1 px-0">
+                <v-select
                   v-model="formData[category.id]['fields'][field.id]['type']"
                   @update:model-value="updateValue($event, field)"
+                  :items="possibleFieldTypes"
+                  item-value="id"
+                  item-title="name"
                   density="compact"
                   variant="solo"
                   label="Typ"
                   single-line
                   hide-details
                   class="pr-4 pl-0"
-                ></v-text-field>
+                  :menu-props="{
+                    closeOnClick: true,
+                    closeOnContentClick: true,
+                    }"
+                ></v-select>
+              </v-col>
+              <v-col cols="1" class="py-1 pl-0">
+                <v-btn
+                  icon
+                  variant="flat"
+                  @click="deleteField(category.id)"
+                >
+                  <v-icon color="grey-lighten-1">
+                    mdi-window-close
+                  </v-icon>
+                </v-btn>
               </v-col>
             </v-row>
           </v-card-text>
@@ -87,12 +121,52 @@ import 'vue3-toastify/dist/index.css'
 import PageTitle from '@/components/PageTitle.vue'
 import NewCategoryDialog from '@/components/NewCategoryDialog.vue'
 import EditCategoryDialog from '@/components/EditCategoryDialog.vue'
+import AddCategoryFieldDialog from '@/components/AddCategoryFieldDialog.vue'
 
 const loading = ref(false)
 const categories = reactive({ a: [ { name: '' } ] })
 const fields = ref([])
 
 const formData = ref({})
+
+const possibleFieldTypes = ref([
+  {
+    id: 'TEXT',
+    name: 'Text'
+  },
+  {
+    id: 'BOOL',
+    name: 'Ja/Nein'
+  },
+  {
+    id: 'GENDER',
+    name: 'Geschlecht'
+  },
+  {
+    id: 'PHONE',
+    name: 'Telefon'
+  },
+  {
+    id: 'EMAIL',
+    name: 'E-Mail'
+  },
+  {
+    id: 'DATE',
+    name: 'Datum'
+  },
+  {
+    id: 'TIME',
+    name: 'Zeit'
+  },
+  {
+    id: 'DATETIME',
+    name: 'Datum & Zeit'
+  },
+  {
+    id: 'NUMBER',
+    name: 'Zahl'
+  }
+])
 
 const fetchData = async() => {
   loading.value = true
@@ -151,13 +225,16 @@ const fetchData = async() => {
 fetchData()
 
 const addCategoryLocal = (newCategory) => {
-  console.log('editCategoryLocal', newCategory)
   categories.a.push(newCategory)
   // fetchData()
 }
 
 const editCategoryLocal = (id, name) => {
   categories.a.find(item => item.id === id).name = name
+}
+
+const addFieldLocal = (cat_id, name, type) => {
+  console.log("yeay")
 }
 
 const formDataFieldsByCategory = (cat_id) => {
