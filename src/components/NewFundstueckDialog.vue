@@ -63,11 +63,11 @@ import { useRouter } from 'vue-router'
 import { supabase } from '@/plugins/supabase'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
-import { useUserStore } from '@/store/user'
+import { useAuthStore } from '@/store/auth'
 
 const router = useRouter()
 
-const userStore = useUserStore()
+const authStore = useAuthStore()
 
 const loading = ref(false)
 
@@ -96,7 +96,7 @@ const createFundstueck = async () => {
     .insert({
       title: title.value,
       description: description.value,
-      usr_id_create: userStore.id,
+      usr_id_create: authStore.id,
     })
     .select()
     .then(({ data, error, status }) => {

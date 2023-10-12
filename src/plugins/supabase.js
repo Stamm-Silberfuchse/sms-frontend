@@ -1,4 +1,4 @@
-import { useUserStore } from '@/store/user'
+import { useAuthStore } from '@/store/auth'
 import { createClient } from '@supabase/supabase-js'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
@@ -50,8 +50,8 @@ const signUp = async (email, password) => {
 
 const signOut = async () => {
   const { error } = await supabase.auth.signOut()
-  const userStore = useUserStore()
-  userStore.$reset()
+  const authStore = useAuthStore()
+  authStore.$reset()
   if (error) {
     toast.error(error.message)
     return null

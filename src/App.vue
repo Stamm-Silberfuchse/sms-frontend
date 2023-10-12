@@ -5,11 +5,11 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { supabase } from '@/plugins/supabase'
-import { useUserStore } from '@/store/user'
+import { useAuthStore } from '@/store/auth'
 
 const session = ref()
 
-const userStore = useUserStore()
+const authStore = useAuthStore()
 
 onMounted(() => {
   supabase.auth.getSession().then(({ data }) => {
@@ -19,9 +19,9 @@ onMounted(() => {
   supabase.auth.onAuthStateChange((_, _session) => {
     session.value = _session
     if(_session) {
-      userStore.id = _session.user.id
-      userStore.email = _session.user.email
-      userStore.fetchUserDetails()
+      authStore.id = _session.user.id
+      authStore.email = _session.user.email
+      authStore.fetchUserDetails()
     }
   })
 })

@@ -107,30 +107,15 @@
           <v-divider />
           <v-list-item lines="two">
             <template v-slot:prepend>
-              <Avatar :memberID="user.id" />
+              <Avatar :memberID="authStore.id" />
             </template>
-            <v-list-item-title v-text="user.details.display_name" />
-            <v-list-item-subtitle v-text="user.email" />
+            <v-list-item-title v-text="authStore.details.display_name" />
+            <v-list-item-subtitle v-text="authStore.email" />
             <template v-slot:append>
               <v-btn icon="mdi-logout" variant="text" color="primary" @click="onSignOut"/>
             </template>
           </v-list-item>
         </template>
-        <!--
-        <template v-slot:append>
-          <v-divider />
-          <v-list-item lines="two">
-            <template v-slot:prepend>
-              <v-avatar size="26px" :image="user.photoURL" />
-            </template>
-            <v-list-item-title v-text="user.displayName" />
-            <v-list-item-subtitle v-text="user.email" />
-            <template v-slot:append>
-              <v-btn icon="mdi-logout" variant="text" color="blue-lighten-3" @click="logOut()"/>
-            </template>
-          </v-list-item>
-        </template>
-        -->
       </v-navigation-drawer>
     </div>
 
@@ -145,7 +130,7 @@
           {{ new Date().getFullYear() }} — <strong>Stamm Silberfüchse</strong>
         </v-col>
       </v-row>
-    </v-footer>
+    n</v-footer>
     -->
   </v-app>
 </template>
@@ -155,10 +140,12 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
 import { signOut } from '@/plugins/supabase'
-import { useCookies } from "vue3-cookies"
-import { useAppStore } from '@/store/app'
+import { useCookies } from 'vue3-cookies'
 
-import { useUserStore } from '@/store/user'
+import { useAppStore } from '@/store/app'
+import { useAuthStore } from '@/store/auth'
+import { useUsersStore } from '@/store/users'
+
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
@@ -172,7 +159,8 @@ const route = useRoute()
 const router = useRouter()
 
 const app = useAppStore()
-const user = useUserStore()
+const authStore = useAuthStore()
+const usersStore = useUsersStore()
 
 const drawer = ref(true)
 
@@ -181,6 +169,9 @@ const displayWidth = ref(1920)
 const notifications = ref(['ghost']) // TODO: Implement notifications
 
 onMounted(() => {
+  // fetch data
+  usersStore.fetchAllUsers()
+
   // theme
   const darkMode = cookies.get('themeMode') === 'darkTheme'
   theme.global.name.value = darkMode ? 'darkTheme' : 'lightTheme'
