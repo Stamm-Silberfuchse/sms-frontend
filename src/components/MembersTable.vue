@@ -130,7 +130,7 @@ const loading = ref(false)
 
 const headers = ref([
   { title: 'M-Nr.', key: 'id' },
-  { title: 'Geschlecht', key: 'GENDER' },
+  // { title: 'Geschlecht', key: 'GENDER' },
   { title: 'Nachname', key: 'LAST_NAME' },
   { title: 'Vorname', key: 'FIRST_NAME' },
   { title: 'Adresse', key: 'ADDRESS' },
