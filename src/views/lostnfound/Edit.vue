@@ -157,11 +157,11 @@
         </v-row>
       </div>
 
-      <div class="bottom-info mt-6">
+      <div v-if="!loading" class="bottom-info mt-6">
         <div class="text-center font-weight-light" style="font-size: 14px;">
-          <p>erstellt von <b>{{ item?.user_create[0].display_name }}</b> am {{ date_created }}</p>
+          <p>erstellt von <b>{{ item?.user_create[0].display_name }}</b> am {{ fdate(item?.timestamp_create) }}</p>
           <p v-if="item?.timestamp_change != null">
-            zuletzt bearbeitet von <b>{{ item?.user_change[0].display_name }}</b> am {{ date_changed }}
+            zuletzt bearbeitet von <b>{{ item?.user_change[0].display_name }}</b> am {{ fdate(item?.timestamp_change) }}
           </p>
         </div>
       </div>
@@ -182,7 +182,7 @@ import PageTitle from '@/components/PageTitle.vue'
 import Avatar from '@/components/Avatar.vue'
 import router from '@/router'
 
-import { useUserStore } from '@/store/user'
+import { useAuthStore } from '@/store/auth'
 
 const $route = useRoute()
 
@@ -196,7 +196,7 @@ const imageFile = ref(null)
 
 const carouselIndex = ref(0)
 
-const userStore = useUserStore()
+const authStore = useAuthStore()
 
 const fetchData = () => {
   loading.value = true
@@ -231,7 +231,7 @@ const saveFundstueck = async () => {
         id: item.value.id,
         title: item.value.title,
         description: item.value.description,
-        usr_id_change: userStore.id,
+        usr_id_change: authStore.id,
         timestamp_change: new Date()
       },
     ])
@@ -314,7 +314,7 @@ const deleteImage = async () => {
   .select()
   .then(({ data, error }) => {
     console.log(error, data)
-    userStore.setAvatarURL(null)
+    authStore.setAvatarURL(null)
     toast.success('Bild wurde entfernt.')
     loading.value = false
   })
@@ -337,10 +337,10 @@ const date_created = computed(() => {
   return format(new Date(item.value?.timestamp_create), 'dd.MM.yyyy, HH:mm', {locale: de})
 })
 
-const date_changed = computed(() => {
-  if(item.value === null) return ''
-  return format(new Date(item.value?.timestamp_change), 'dd.MM.yyyy, HH:mm', {locale: de})
-})
+const fdate = (date) => {
+  if(date === null || date === undefined) return ''
+  return format(new Date(date), 'dd.MM.yyyy, HH:mm', {locale: de})
+}
 
 </script>
 

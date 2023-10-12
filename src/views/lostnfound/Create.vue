@@ -99,9 +99,9 @@ import 'vue3-toastify/dist/index.css'
 
 import PageTitle from '@/components/PageTitle.vue'
 import router from '@/router'
-import { useUserStore } from '@/store/user'
+import { useAuthStore } from '@/store/auth'
 
-const userStore = useUserStore()
+const authStore = useAuthStore()
 
 const item = ref({
   title: '',
@@ -114,7 +114,7 @@ const saveFundstueck = async () => {
     .insert({
       title: item.value.title,
       description: item.value.description,
-      usr_id_create: userStore.id,
+      usr_id_create: authStore.id,
     })
     .select()
     .then(({ data, error, status }) => {

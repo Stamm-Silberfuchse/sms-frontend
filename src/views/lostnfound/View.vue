@@ -128,11 +128,11 @@
         </v-row>
       </div>
 
-      <div class="bottom-info mt-6">
+      <div v-if="!loading" class="bottom-info mt-6">
         <div class="text-center font-weight-light" style="font-size: 14px;">
-          <p>erstellt von <b>{{ item?.user_create[0].display_name }}</b> am {{ date_created }}</p>
+          <p>erstellt von <b>{{ item?.user_create[0].display_name }}</b> am {{ fdate(item?.timestamp_create) }}</p>
           <p v-if="item?.user_change[0] != null">
-            zuletzt bearbeitet von <b>{{ item?.user_change[0].display_name }}</b> am {{ date_changed }}
+            zuletzt bearbeitet von <b>{{ item?.user_change[0].display_name }}</b> am {{ fdate(item?.timestamp_change) }}
           </p>
         </div>
       </div>
@@ -207,15 +207,10 @@ const hasPhotos = computed(() => {
   return item.value.images[0]?.id !== null
 })
 
-const date_created = computed(() => {
-  if(item.value === null) return ''
-  return format(new Date(item.value?.timestamp_create), 'dd.MM.yyyy, HH:mm', {locale: de})
-})
-
-const date_changed = computed(() => {
-  if(item.value === null) return ''
-  return format(new Date(item.value?.timestamp_change), 'dd.MM.yyyy, HH:mm', {locale: de})
-})
+const fdate = (date) => {
+  if(date === null || date === undefined) return ''
+  return format(new Date(date), 'dd.MM.yyyy, HH:mm', {locale: de})
+}
 </script>
 
 <style>
