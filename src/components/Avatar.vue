@@ -1,5 +1,5 @@
 <template>
-  <VAvatar>
+  <v-avatar>
     <template v-if="loading" >
       <v-skeleton-loader type="avatar" />
     </template>
@@ -27,7 +27,7 @@
         </v-tooltip>
       </v-avatar>
     </template>
-  </VAvatar>
+  </v-avatar>
 </template>
 
 <script setup>
