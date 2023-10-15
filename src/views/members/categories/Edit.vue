@@ -30,7 +30,7 @@
               <v-row class="mx-0 mt-0 pb-2">
                 {{ category.name }}
                 <v-spacer></v-spacer>
-                <AddCategoryFieldDialog
+                <NewCategoryFieldDialog
                   :categoryName="category.name"
                   :categoryID="category.id"
                   :callbackFn="addFieldLocal"
@@ -97,7 +97,7 @@
                 <v-btn
                   icon
                   variant="flat"
-                  @click="deleteField(category.id)"
+                  @click="deleteField(field.id, category.id)"
                 >
                   <v-icon color="grey-lighten-1">
                     mdi-window-close
@@ -121,13 +121,13 @@ import 'vue3-toastify/dist/index.css'
 import PageTitle from '@/components/PageTitle.vue'
 import NewCategoryDialog from '@/components/NewCategoryDialog.vue'
 import EditCategoryDialog from '@/components/EditCategoryDialog.vue'
-import AddCategoryFieldDialog from '@/components/AddCategoryFieldDialog.vue'
+import NewCategoryFieldDialog from '@/components/NewCategoryFieldDialog.vue'
 
 const loading = ref(false)
 const categories = reactive({ a: [ { name: '' } ] })
 const fields = ref([])
 
-const formData = ref({})
+const formData = reactive({})
 
 const possibleFieldTypes = ref([
   {
@@ -179,8 +179,7 @@ const fetchData = async() => {
       if(data) {
         categories.a = data
         data.forEach((el) => {
-          formData.value[el.id] = {
-            uuid: el.uuid,
+          formData[el.id] = {
             name: el.name,
             name_intern: el.name_intern,
             fields: {}
@@ -200,13 +199,7 @@ const fetchData = async() => {
       if(data) {
         fields.value = data
         data.forEach((el) => {
-          let initial_value = ''
-          // TODO: convert to matching type
-          if(el.type === 'BOOL') {
-            initial_value = false
-          }
-          formData.value[el?.cat_id]["fields"][el?.id] = {
-            value: initial_value,
+          formData[el?.cat_id]["fields"][el?.id] = {
             type: el.type,
             name: el.name,
             field_name_intern: el.name_intern
@@ -226,21 +219,28 @@ fetchData()
 
 const addCategoryLocal = (newCategory) => {
   categories.a.push(newCategory)
-  // fetchData()
+  formData[newCategory.id] = {
+    name: newCategory.name,
+    name_intern: newCategory.name_intern,
+    fields: {}
+  }
 }
 
 const editCategoryLocal = (id, name) => {
   categories.a.find(item => item.id === id).name = name
 }
 
-const addFieldLocal = (cat_id, name, type) => {
-  console.log("yeay")
+const addFieldLocal = (cat_id, field_id, name, type) => {
+  formData[cat_id]["fields"][field_id] = {
+    type: type,
+    name: name
+  }
 }
 
 const formDataFieldsByCategory = (cat_id) => {
-  if(formData.value[cat_id] === undefined) return []
-  return Object.keys(formData.value[cat_id]?.fields)
-    .map(id => ({ id, ...formData.value[cat_id]?.fields[id] }))
+  if(formData[cat_id] === undefined) return []
+  return Object.keys(formData[cat_id]?.fields)
+    .map(id => ({ id, ...formData[cat_id]?.fields[id] }))
 }
 
 const deleteCategory = (id) => {
@@ -255,6 +255,22 @@ const deleteCategory = (id) => {
       } else {
         categories.a = categories.a.filter(item => item.id !== id)
         toast.success('Kategorie gelöscht.')
+      }
+    })
+}
+
+const deleteField = (fieldID, categoryID) => {
+  supabase
+    .from('member_fields')
+    .delete()
+    .eq('id', fieldID)
+    .then(async ({ error }) => {
+      if(error) {
+        console.error(error)
+        toast.error(error.message)
+      } else {
+        delete formData[categoryID].fields[fieldID]
+        toast.success('Feld gelöscht.')
       }
     })
 }
