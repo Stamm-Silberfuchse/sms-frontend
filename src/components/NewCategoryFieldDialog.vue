@@ -30,7 +30,6 @@
             ></v-text-field>
             <v-select
               v-model="fieldtype"
-              @update:model-value="updateValue($event, field)"
               :items="possibleCategories"
               item-value="id"
               item-title="name"
@@ -150,7 +149,6 @@ const categoryNameRules = ref([
 const addField = async (isActive) => {
   loading.value = true
 
-
   await supabase.from('member_fields').insert([
       {
         cat_id: props.categoryID,
@@ -167,7 +165,7 @@ const addField = async (isActive) => {
       if(data) {
         toast.success('Feld wurde erstellt.')
         if( props.callbackFn != null ) {
-          props.callbackFn(props.categoryID, fieldname.value, fieldtype.value)
+          props.callbackFn(props.categoryID, data[0].id, fieldname.value, fieldtype.value)
         }
       }
     })
