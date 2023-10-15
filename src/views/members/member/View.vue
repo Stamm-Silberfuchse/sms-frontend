@@ -68,6 +68,10 @@
           >
             Bearbeiten
           </v-btn>
+          <NewContactDialog
+            :memberName="`${getMemberDataByFieldNameIntern('FIRST_NAME')} ${getMemberDataByFieldNameIntern('LAST_NAME')}`"
+            :memberID="member?.uuid"
+          />
           <v-btn
             @click="goToSettings"
             prependIcon="mdi-email-edit-outline"
@@ -135,6 +139,7 @@ import { parseField } from '@/plugins/sms-helper'
 
 import PageTitle from '@/components/PageTitle.vue'
 import Avatar from '@/components/Avatar.vue'
+import NewContactDialog from '@/components/NewContactDialog.vue'
 
 const $route = useRoute()
 
