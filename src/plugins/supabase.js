@@ -48,7 +48,7 @@ const signIn = async (email, password) => {
 
 const signUp = async (email, password, name) => {
   console.log(import.meta.env.VITE_SITE_URL)
-  console.log(import.meta.env.VITE_SITE_URL + '/confirm-registration')
+  console.log(import.meta.env.VITE_SITE_URL + '/#/confirm-registration')
   const { data, error } = await supabase.auth.signUp({
     email: email,
     password: password,
