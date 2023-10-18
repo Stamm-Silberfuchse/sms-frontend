@@ -183,8 +183,8 @@ onMounted(() => {
 
 const onSignOut = () => {
   signOut().then(() => {
-    toast.success('Abmeldung erfolgreich')
     router.push({ name: 'Anmelden' })
+    toast.success('Abmeldung erfolgreich')
   })
 }
 
