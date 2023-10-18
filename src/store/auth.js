@@ -7,10 +7,10 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     id: null,
     email: null,
-    details: {}
+    profile: {}
   }),
   actions: {
-    async fetchUserDetails() {
+    async fetchProfile() {
       const { data: { session } } = await supabase.auth.getSession()
 
       try {

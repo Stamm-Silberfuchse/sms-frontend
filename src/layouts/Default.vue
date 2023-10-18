@@ -36,7 +36,7 @@
           overlap
           class="mr-3"
         >
-          <v-icon :color="app.globalLoading ? 'primary' : 'grey-lighten-1'">
+          <v-icon :color="appStore.globalLoading ? 'primary' : 'grey-lighten-1'">
             mdi-bell
           </v-icon>
         </v-badge>
@@ -109,7 +109,7 @@
             <template v-slot:prepend>
               <Avatar :memberID="authStore.id" />
             </template>
-            <v-list-item-title v-text="authStore.details.display_name" />
+            <v-list-item-title v-text="authStore.profile.display_name" />
             <v-list-item-subtitle v-text="authStore.email" />
             <template v-slot:append>
               <v-btn icon="mdi-logout" variant="text" color="primary" @click="onSignOut"/>
@@ -158,7 +158,7 @@ const theme = useTheme()
 const route = useRoute()
 const router = useRouter()
 
-const app = useAppStore()
+const appStore = useAppStore()
 const authStore = useAuthStore()
 const usersStore = useUsersStore()
 
@@ -189,7 +189,7 @@ const onSignOut = () => {
 }
 
 const switchLoading = () => {
-  app.setGlobalLoading(!app.globalLoading)
+  appStore.setGlobalLoading(!appStore.globalLoading)
 }
 
 const onResize = () => {
