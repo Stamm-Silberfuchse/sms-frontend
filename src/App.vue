@@ -21,7 +21,8 @@ onMounted(() => {
     if(_session) {
       authStore.id = _session.user.id
       authStore.email = _session.user.email
-      authStore.fetchUserDetails()
+      authStore.session = _session
+      authStore.fetchProfile()
     }
   })
 })
