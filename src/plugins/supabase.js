@@ -53,7 +53,7 @@ const signUp = async (email, password, name) => {
     email: email,
     password: password,
     options: {
-      emailRedirectTo: import.meta.env.VITE_SITE_URL + '/confirm-registration',
+      emailRedirectTo: import.meta.env.VITE_SITE_URL + '/#/confirm-registration',
       data: {
         full_name: name,
         status: "pending"
