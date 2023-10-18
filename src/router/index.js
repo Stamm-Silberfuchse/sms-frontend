@@ -210,7 +210,17 @@ const routes = [
       },
     ],
   },
-
+  {
+    path: '/admin',
+    component: () => import('@/layouts/Default.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Admin',
+        component: () => import('@/views/admin/Index.vue'),
+      },
+    ],
+  },
 ]
 
 const router = createRouter({
