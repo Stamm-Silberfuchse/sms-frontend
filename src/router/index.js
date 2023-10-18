@@ -233,9 +233,7 @@ router.beforeResolve(async (to) => {
   if (error) {
     console.error(error)
   }
-  console.log(session)
   if( session !== null && session?.user?.user_metadata?.status !== "verified" ) {
-    console.log("YEAY")
     await supabase.auth.signOut()
     return {
       path: '/confirm-registration'
