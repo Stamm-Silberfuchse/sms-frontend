@@ -123,8 +123,8 @@
   const onSignIn = async () => {
     const data = await signIn(email.value, password.value)
     if (data != null) {
-      toast.success('Anmeldung erfolgreich')
       router.push(route.query.redirect || { name: 'Home' })
+      toast.success('Anmeldung erfolgreich')
     }
   }
 

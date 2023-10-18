@@ -24,7 +24,7 @@ const routes = [
       {
         path: '',
         name: 'Anmelden',
-        component: () => import('@/views/Login.vue'),
+        component: () => import('@/views/auth/Login.vue'),
       },
     ],
   },
@@ -35,10 +35,23 @@ const routes = [
       {
         path: '',
         name: 'Registrieren',
-        component: () => import('@/views/Register.vue'),
+        component: () => import('@/views/auth/Register.vue'),
       },
     ],
   },
+  {
+    path: '/confirm-registration',
+    component: () => import('@/layouts/Blank.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Registrierung bestätigen',
+        component: () => import('@/views/auth/ConfirmRegistration.vue'),
+      },
+    ],
+  },
+
+
   {
     path: '/mails',
     component: () => import('@/layouts/Default.vue'),
@@ -205,12 +218,26 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach(async (to) => {
+router.beforeResolve(async (to) => {
   const { data: { session }, error } = await supabase.auth.getSession()
   if (error) {
     console.error(error)
   }
-  if (!session && (to.path !== '/login' && to.path !== '/register')) {
+  console.log(session)
+  if( session !== null && session?.user?.user_metadata?.status !== "verified" ) {
+    console.log("YEAY")
+    await supabase.auth.signOut()
+    return {
+      path: '/confirm-registration'
+    }
+  }
+  if (
+    ( !session &&
+      ( to.path !== '/login' &&
+        to.path !== '/register' &&
+        to.path !== '/confirm-registration')
+    )
+  ) {
     return {
       path: '/login',
       query: {

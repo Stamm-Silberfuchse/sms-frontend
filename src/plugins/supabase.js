@@ -27,23 +27,41 @@ const signIn = async (email, password) => {
     email: email,
     password: password,
   })
-  if (error) {
-    toast.error(error.message)
+  if(error) {
+    if(error.message === "Email not confirmed") {
+      toast.info("Bitte bestätige deine E-Mail-Adresse.")
+    } else if (error.message === "Invalid login credentials") {
+      toast.error("Falsche Zugangsdaten.")
+    } else {
+      toast.error(error.message)
+    }
+    return null
+  }
+  console.log(data)
+  if(data.user?.user_metadata?.status !== "verified") {
+    signOut()
+    toast.info('Dein Account ist leider nicht freigegeben.\nBitte wende dich an die Admins.')
     return null
   }
   return data
 }
 
-const signUp = async (email, password) => {
+const signUp = async (email, password, name) => {
   const { data, error } = await supabase.auth.signUp({
     email: email,
     password: password,
+    options: {
+      emailRedirectTo: import.meta.env.VITE_SITE_URL + '/confirm-registration',
+      data: {
+        full_name: name,
+        status: "pending"
+      },
+    }
   })
   if (error) {
+    console.error(error)
     toast.error(error.message)
     return null
-  } else {
-    toast.success("Registrierung erfolgreich! Bitte überprüfe deine E-Mails.");
   }
   return data
 }
