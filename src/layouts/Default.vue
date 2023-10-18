@@ -98,6 +98,15 @@
         <template v-slot:append>
           <v-list nav :lines="false">
             <v-list-item
+            title="Admin"
+              prepend-icon="mdi-shield-account"
+              :to="{ name: 'Admin' }"
+              color="primary"
+            ></v-list-item>
+          </v-list>
+          <v-divider />
+          <v-list nav :lines="false">
+            <v-list-item
               title="Einstellungen"
               prepend-icon="mdi-cog-outline"
               :to="{ name: 'Einstellungen' }"
