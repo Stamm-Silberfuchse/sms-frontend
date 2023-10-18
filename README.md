@@ -1,5 +1,7 @@
 # SMS (Frontend)
 
+[![Deploy to Pages](https://github.com/Stamm-Silberfuchse/sms-frontend/actions/workflows/jekyll-gh-pages.yml/badge.svg)](https://github.com/Stamm-Silberfuchse/sms-frontend/actions/workflows/jekyll-gh-pages.yml)
+
 ## Project setup
 
 ```bash
