@@ -37,7 +37,6 @@ const signIn = async (email, password) => {
     }
     return null
   }
-  console.log(data)
   if(data.user?.user_metadata?.status !== "verified") {
     signOut()
     toast.info('Dein Account ist leider nicht freigegeben.\nBitte wende dich an die Admins.')
@@ -47,13 +46,11 @@ const signIn = async (email, password) => {
 }
 
 const signUp = async (email, password, name) => {
-  console.log(import.meta.env.VITE_SITE_URL)
-  console.log(import.meta.env.VITE_SITE_URL + '/#/confirm-registration')
   const { data, error } = await supabase.auth.signUp({
     email: email,
     password: password,
     options: {
-      emailRedirectTo: import.meta.env.VITE_SITE_URL + '/#/confirm-registration',
+      emailRedirectTo: import.meta.env.VITE_SITE_URL + '/confirm-registration',
       data: {
         full_name: name,
         status: "pending"
