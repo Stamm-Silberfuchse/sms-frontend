@@ -32,6 +32,7 @@
               color="primary"
               required
               autofocus
+              autocomplete="name"
               :rules="nameRules"
               class="pb-2"
             ></v-text-field>
@@ -44,6 +45,7 @@
               variant="outlined"
               color="primary"
               required
+              autocomplete="email"
               :rules="emailRules"
               class="pb-2"
             ></v-text-field>
@@ -126,10 +128,10 @@
 
   const pwVisible = ref(false)
 
-  const name = ref('')
-  const email = ref('')
-  const password = ref('')
-  const password2 = ref('')
+  const name = ref('Johannes Michaelis')
+  const email = ref('johannes.michaelis@stamm-silberfuechse.de')
+  const password = ref('joh_Test_1')
+  const password2 = ref('joh_Test_1')
 
   const confirmed = ref(false)
 
