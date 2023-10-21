@@ -1,0 +1,57 @@
+name: Build and Deploy App to S3 Bucket
+on:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    env:
+      BUCKET: ${{ secrets.AWS_S3_BUCKET_NAME }}
+      DIST: dist
+      REGION: eu-central-1
+      DIST_ID: ${{ secrets.AWS_DIST_ID }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Write envs
+      run:  |
+        echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> .env
+        echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env
+        echo "VITE_SITE_URL=${{ secrets.VITE_SITE_URL_S3 }}" >> .env
+
+    - name: Build app
+      run: npm run build
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.REGION }}
+
+    - name: Copy files to s3 bucket
+      run: |
+        aws s3 sync --delete ${{ env.DIST }} s3://${{ env.BUCKET }}
+
+    - name: Invalidate cache
+      run: |
+        aws cloudfront create-invalidation \
+          --distribution-id ${{ env.AWS_DIST_ID }} \
+          --paths "/*"
