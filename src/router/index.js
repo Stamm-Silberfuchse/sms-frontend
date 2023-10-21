@@ -233,12 +233,15 @@ router.beforeResolve(async (to) => {
   if (error) {
     console.error(error)
   }
-  if( session !== null && session?.user?.user_metadata?.status !== "verified" ) {
-    // await supabase.auth.signOut()
-    return true
-    // return {
-      // path: '/confirm-registration'
-    // }
+  if( session !== null && session?.user?.user_metadata?.status !== "verified") {
+    if( to.path === '/confirm-registration' ) {
+      return true
+    } else {
+      await supabase.auth.signOut()
+      return {
+        path: '/login',
+      }
+    }
   }
   if (
     ( !session &&

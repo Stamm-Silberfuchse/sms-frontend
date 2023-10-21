@@ -82,6 +82,8 @@
   onMounted(async () => {
     const { session } = await getSession()
 
+    console.log(session)
+
     const { data, error } = await supabase.functions.invoke('on-email-confirmation', {
       headers: {},
       body: { uuid: session?.user?.id },
