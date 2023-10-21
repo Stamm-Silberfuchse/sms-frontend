@@ -80,11 +80,11 @@
   const errortext = ref('')
 
   onMounted(async () => {
-    const session = await getSession()
+    const { session } = await getSession()
 
     const { data, error } = await supabase.functions.invoke('on-email-confirmation', {
       headers: {},
-      body: { uuid: '8750fefe-fb89-464f-a71f-d35f0aabb481' },
+      body: { uuid: session?.user?.id },
     })
 
     if (error instanceof FunctionsHttpError) {
