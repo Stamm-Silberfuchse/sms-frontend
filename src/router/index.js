@@ -219,6 +219,21 @@ const routes = [
         name: 'Admin',
         component: () => import('@/views/admin/Index.vue'),
       },
+      {
+        path: 'users',
+        children: [
+          {
+            path: '',
+            name: 'Admin Nutzer',
+            component: () => import('@/views/admin/users/All.vue'),
+          },
+          {
+            path: 'states',
+            name: 'Nutzerstati',
+            component: () => import('@/views/admin/users/UserStates.vue'),
+          }
+        ]
+      }
     ],
   },
 ]
