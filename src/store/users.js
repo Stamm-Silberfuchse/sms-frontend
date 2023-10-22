@@ -7,9 +7,9 @@ export const useUsersStore = defineStore('users', {
   }),
   actions: {
     async fetchAllUsers() {
-      const { data, error, status } = await supabase
+      const { data, error } = await supabase
           .from('profiles')
-          .select(`username, full_name, display_name, avatar_url`)
+          .select(`*`)
       if (error) {
         console.error(error)
         throw error
@@ -18,5 +18,13 @@ export const useUsersStore = defineStore('users', {
         this.users = data
       }
     }
+  },
+  getters: {
+    getAmountOfUsers () {
+      return this.users.length
+    },
+    getAmountOfUsersRegistered () {
+      return this.users.filter(user => user.status === 'registered').length
+    },
   }
 })

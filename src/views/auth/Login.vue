@@ -139,7 +139,7 @@
   const visible = ref(false)
   const formState = ref('login')
 
-  const email = ref('johannesmichaelis0@gmail.com')
+  const email = ref('johannes.michaelis@stamm-silberfuechse.de')
   const password = ref('joh_Test_1')
 
   const emailRules = ref([
