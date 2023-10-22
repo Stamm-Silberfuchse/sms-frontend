@@ -48,35 +48,7 @@
                     </v-card>
                   </v-col>
                   <v-col cols="12" md="6" lg="4">
-                    <v-card
-                      class="mx-auto"
-                      color="primary"
-                      :variant="usersStore.getAmountOfUsersRegistered > 0 ? 'flat' : 'tonal'"
-                    >
-                      <v-card-item class="pb-0">
-                        <div>
-                          <div class="text-overline mb-3">
-                            Ausstehende Anträge
-                          </div>
-                          <div class="text-center text-h3 font-quicksand font-weight-bold">
-                            {{ usersStore.getAmountOfUsersRegistered }}
-                          </div>
-                          <!--
-                            <div class="text-caption">Greyhound divisely hello coldly fonwderfully</div>
-                          -->
-                        </div>
-                      </v-card-item>
-
-                      <v-card-actions>
-                        <v-btn class="text-none">
-                          Alle ansehen
-                        </v-btn>
-                        <v-spacer />
-                        <v-btn class="text-none">
-                          Prüfen
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
+                    <AdminCardStatus />
                   </v-col>
                   <v-col cols="12" md="6" lg="4">
                     <v-card
@@ -301,9 +273,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { useUsersStore } from '@/store/users'
+
 import PageTitle from '@/components/PageTitle.vue'
+import AdminCardStatus from '@/components/admin/AdminCardStatus.vue'
 
 const usersStore = useUsersStore()
 

@@ -17,6 +17,9 @@ export const useUsersStore = defineStore('users', {
       if (data) {
         this.users = data
       }
+    },
+    updateUserStatus(uuid, status) {
+      this.users.find(user => user.id === uuid).status = status
     }
   },
   getters: {
