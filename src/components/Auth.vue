@@ -43,4 +43,3 @@ const handleLogin = async () => {
     </div>
   </form>
 </template>
-../plugins/supabase

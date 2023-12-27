@@ -52,4 +52,9 @@ export default createVuetify({
     locale: 'de',
     messages: { de },
   },
+  defaults: {
+    VBtn: {
+      // class: 'pa-16',
+    },
+  },
 })
