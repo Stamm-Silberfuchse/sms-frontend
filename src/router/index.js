@@ -1,6 +1,6 @@
 // Composables
 import { createRouter, createWebHistory } from 'vue-router'
-import { supabase } from '@/plugins/supabase'
+import { auth, getCurrentUser } from '@/plugins/firebase'
 
 const routes = [
   {
@@ -10,10 +10,8 @@ const routes = [
       {
         path: '',
         name: 'Home',
-        // route level code-splitting
-        // this generates a separate chunk (about.[hash].js) for this route
-        // which is lazy-loaded when the route is visited.
-        component: () => import(/* webpackChunkName: "home" */ '@/views/Home.vue'),
+        meta: { requiresAuth: true },
+        component: () => import('@/views/Home.vue'),
       },
     ],
   },
@@ -24,7 +22,7 @@ const routes = [
       {
         path: '',
         name: 'Anmelden',
-        component: () => import('@/views/auth/Login.vue'),
+        component: () => import('@/views/Auth/Login.vue'),
       },
     ],
   },
@@ -35,7 +33,7 @@ const routes = [
       {
         path: '',
         name: 'Registrieren',
-        component: () => import('@/views/auth/Register.vue'),
+        component: () => import('@/views/Auth/Register.vue'),
       },
     ],
   },
@@ -46,19 +44,40 @@ const routes = [
       {
         path: '',
         name: 'Registrierung bestätigen',
-        component: () => import('@/views/auth/ConfirmRegistration.vue'),
+        component: () => import('@/views/Auth/ConfirmRegistration.vue'),
       },
     ],
   },
-
-
+  {
+    path: '/onboarding',
+    component: () => import('@/layouts/Blank.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Onboarding',
+        component: () => import('@/views/Auth/Onboarding.vue'),
+      },
+    ],
+  },
+  {
+    path: '/signInWithLink',
+    component: () => import('@/layouts/Blank.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Sign In With Link',
+        component: () => import('@/views/Auth/SignInWithLink.vue'),
+      },
+    ],
+  },
   {
     path: '/mails',
+    meta: { requiresAuth: true },
     component: () => import('@/layouts/Default.vue'),
     children: [
       {
         path: '',
-        name: 'Mail',
+        name: 'Mails',
         component: () => import('@/views/mails/Index.vue'),
       },
       {
@@ -82,6 +101,7 @@ const routes = [
   },
   {
     path: '/calendar',
+    meta: { requiresAuth: true },
     component: () => import('@/layouts/Default.vue'),
     children: [
       {
@@ -108,6 +128,7 @@ const routes = [
   },
   {
     path: '/lostnfound',
+    meta: { requiresAuth: true },
     component: () => import('@/layouts/Default.vue'),
     children: [
       {
@@ -140,6 +161,7 @@ const routes = [
   },
   {
     path: '/docs',
+    meta: { requiresAuth: true },
     component: () => import('@/layouts/Default.vue'),
     children: [
       {
@@ -151,6 +173,7 @@ const routes = [
   },
   {
     path: '/todos',
+    meta: { requiresAuth: true },
     component: () => import('@/layouts/Default.vue'),
     children: [
       {
@@ -161,19 +184,23 @@ const routes = [
     ],
   },
   {
-    path: '/members',
+    path: '/orga',
+    meta: { requiresAuth: true },
     component: () => import('@/layouts/Default.vue'),
     children: [
       {
         path: '',
-        name: 'Mitgliederverwaltung',
-        component: () => import('@/views/members/Main.vue'),
+        name: 'Verwaltung',
+        component: () => import('@/views/orga/Index.vue'),
       },
       {
-        path: 'member',
-        name: 'REDIRECT-members',
-        redirect: '/members',
+        path: 'members',
         children: [
+          {
+            path: '',
+            name: 'Mitglieder',
+            component: () => import('@/views/orga/members/Index.vue'),
+          },
           {
             path: ':id',
             name: 'Mitglied',
@@ -181,12 +208,12 @@ const routes = [
               {
                 path: '',
                 name: 'Mitglied ansehen',
-                component: () => import('@/views/members/member/View.vue'),
+                component: () => import('@/views/orga/members/member/View.vue'),
               },
               {
                 path: 'edit',
                 name: 'Mitglied bearbeiten',
-                component: () => import('@/views/members/member/Edit.vue'),
+                component: () => import('@/views/orga/members/member/Edit.vue'),
               },
             ],
           },
@@ -195,12 +222,25 @@ const routes = [
       {
         path: 'categories',
         name: 'Kategorien bearbeiten',
-        component: () => import('@/views/members/categories/Edit.vue'),
+        component: () => import('@/views/orga/members/categories/Edit.vue'),
+      },
+    ],
+  },
+  {
+    path: '/notifications',
+    meta: { requiresAuth: true },
+    component: () => import('@/layouts/Default.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Benachrichtigungen',
+        component: () => import('@/views/Notifications.vue'),
       },
     ],
   },
   {
     path: '/settings',
+    meta: { requiresAuth: true },
     component: () => import('@/layouts/Default.vue'),
     children: [
       {
@@ -211,7 +251,20 @@ const routes = [
     ],
   },
   {
+    path: '/account',
+    component: () => import('@/layouts/Default.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Account',
+        meta: { requiresAuth: true },
+        component: () => import('@/views/Auth/Account.vue'),
+      },
+    ],
+  },
+  {
     path: '/admin',
+    meta: { requiresAuth: true, requiresAdmin: true },
     component: () => import('@/layouts/Default.vue'),
     children: [
       {
@@ -224,7 +277,7 @@ const routes = [
         children: [
           {
             path: '',
-            name: 'Admin Nutzer',
+            name: 'Nutzer',
             component: () => import('@/views/admin/users/All.vue'),
           },
           {
@@ -240,40 +293,34 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
-  routes,
+  routes: routes,
+  scrollBehavior(to, from, savedPosition) {
+    return {
+      top: 0,
+      behavior: 'smooth'
+    }
+  },
 })
 
 router.beforeResolve(async (to) => {
-  const { data: { session }, error } = await supabase.auth.getSession()
-  if (error) {
-    console.error(error)
-  }
-  if( session !== null && session?.user?.user_metadata?.status !== "verified") {
-    if( to.path === '/confirm-registration' ) {
-      return true
-    } else {
-      await supabase.auth.signOut()
-      return {
-        path: '/login',
-      }
-    }
-  }
-  if (
-    ( !session &&
-      ( to.path !== '/login' &&
-        to.path !== '/register' &&
-        to.path !== '/confirm-registration')
-    )
-  ) {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
+  if (requiresAuth && !await getCurrentUser()) {
     return {
       path: '/login',
-      query: {
-        // we keep the current path in the query so we can
-        // redirect to it after login with
-        // `router.push(route.query.redirect || '/')`
-        redirect: to.fullPath,
-      }
+      query: { redirect: to.fullPath },
     }
+  }
+  const isAdmin = await auth.currentUser?.getIdTokenResult()
+    .then((idTokenResult) => {
+      return true //idTokenResult.claims.role === 'admin'
+    })
+    .catch((error) => {
+      console.error(error)
+      throw error
+    })
+  if (requiresAdmin && !isAdmin) {
+    return { name: 'No Access' }
   }
 })
 

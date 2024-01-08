@@ -11,8 +11,8 @@
         >
           <v-col cols="12">
             <v-card class="mb-4 px-3">
-              <v-card-text class="mb-6">
-                <v-card-title class="text-h5 text--primary mb-5 px-0">
+              <v-card-text class="mb-4">
+                <v-card-title class="text-h5 text--primary mb-3 px-0">
                   Userverwaltung
                 </v-card-title>
 
@@ -29,7 +29,7 @@
                             Gesamtanzahl
                           </div>
                           <div class="text-center text-h3 font-quicksand font-weight-bold">
-                            {{ usersStore.getAmountOfUsers }}
+                            {{ usersStore.getAllUsers?.length }}
                           </div>
                           <!--
                             <div class="text-caption">Greyhound divisely hello coldly fonwderfully</div>
@@ -39,16 +39,13 @@
 
                       <v-card-actions>
                         <v-btn
-                          :to="{ name: 'Admin Nutzer' }"
+                          :to="{ name: 'Nutzer' }"
                           class="text-none"
                         >
                           Alle User
                         </v-btn>
                       </v-card-actions>
                     </v-card>
-                  </v-col>
-                  <v-col cols="12" md="6" lg="4">
-                    <AdminCardStatus />
                   </v-col>
                   <v-col cols="12" md="6" lg="4">
                     <v-card

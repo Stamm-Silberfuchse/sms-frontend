@@ -3,28 +3,25 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { supabase } from '@/plugins/supabase'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+
 import { useAuthStore } from '@/store/auth'
+import { useUsersStore } from '@/store/users'
+import { useCategoriesStore } from '@/store/categories'
 
-const session = ref()
-
+const auth = getAuth()
 const authStore = useAuthStore()
+const usersStore = useUsersStore()
 
-onMounted(() => {
-  supabase.auth.getSession().then(({ data }) => {
-    session.value = data.session
-  })
-
-  supabase.auth.onAuthStateChange((_, _session) => {
-    session.value = _session
-    if(_session) {
-      authStore.id = _session.user.id
-      authStore.email = _session.user.email
-      authStore.session = _session
-      authStore.fetchProfile()
-    }
-  })
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    authStore.set(user)
+    usersStore.fetchUser(user.uid)
+    usersStore.bind()
+    // authStore.photoURL = { ...authStore.photoURL, original: user.photoURL }
+  } else {
+    usersStore.unbind()
+    authStore.$reset()
+  }
 })
-
 </script>

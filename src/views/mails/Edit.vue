@@ -1,32 +1,26 @@
 <template>
   <v-container>
-    <PageTitle title="Mail bearbeiten" :back="true">
-      <v-chip
-        :v-if="!loading"
-        class="ma-2"
-        variant="flat"
-        :color="email?.status?.color"
-        :prepend-icon="email?.status?.mdi_icon"
-      >
-        {{ email?.status?.display_name }}
-      </v-chip>
+    <PageTitle title="Mail bearbeiten" :back="true" :loading="loading">
+      <StatusBadge :email="email" size="default" tooltipLocation="end" />
     </PageTitle>
 
-    <v-row justify="start" class="mx-0 pt-0 px-3 pb-3">
+    <v-row justify="start" class="mx-0 pt-0 px-3 pb-4">
       <v-btn
         color="primary"
-        prepend-icon="mdi-send-clock-outline"
+        prepend-icon="mdi-send-outline"
+        :loading="sendLoading"
         :disabled="isDisabled"
         class="mr-4 mb-4 text-none"
-        @click="sendMail"
+        @click="onSendMail()"
       >
         Senden
       </v-btn>
       <v-btn
         prepend-icon="mdi-content-save-outline"
+        :loading="saveLoading"
         :disabled="isDisabled"
         class="mr-4 mb-4 text-none"
-        @click="saveMail"
+        @click="onSaveMail()"
       >
         Speichern
       </v-btn>
@@ -35,10 +29,10 @@
     <v-row
       v-if="!loading"
       justify="start"
-      class="mx-0 mt-0 mb-4"
+      class="mx-0 mt-0 mb-4 pt-4"
       style="padding-left: -20px;"
     >
-      <v-col cols="12">
+      <v-col cols="12" class="pt-0">
         <v-form :v-if="!loading">
           <v-select
             name="recipients"
@@ -95,39 +89,37 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import { supabase } from '@/plugins/supabase'
+import { ref, computed, onMounted } from 'vue'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
-import { useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+
+import { useMailsStore } from '@/store/mails'
 
 import PageTitle from '@/components/PageTitle.vue'
+import StatusBadge from '@/components/mails/StatusBadge.vue'
 
-const $route = useRoute()
+const route = useRoute()
+const router = useRouter()
 
+const mailsStore = useMailsStore()
+
+const sendLoading = ref(false)
+const saveLoading = ref(false)
+
+const loading = ref(true)
 const email = ref({})
 const recipientsOptions = ref([])
-const loading = ref(true)
 
-supabase
-  .from('emails')
-  .select('*, author:profiles(id, full_name) , status:email_status(*)')
-  .eq('id', $route.params.id)
-  .single()
-  .then(async ({ data, error, status }) => {
-    if (error && status !== 406) throw error
-
-    if(data) {
-      email.value = data
-      loading.value = false
-    }
-  })
-  .catch((error) => {
-    toast.error(error.message)
-  })
-  .finally(() =>{
-    loading.value = false
-  })
+onMounted(async () => {
+  const id = route.params.id
+  if (mailsStore.getByID(id) === undefined) {
+    console.log('Loading mail')
+    await mailsStore.fetchMail(id)
+  }
+  email.value = mailsStore.getByID(id)
+  loading.value = false
+})
 
 const showIndividualRecipients = computed(() => {
   return email?.recipients?.value.some(el => {
@@ -142,43 +134,31 @@ const isDisabled = computed(() => {
     email?.value?.status?.id === 5
 })
 
-supabase
-  .from('email_recipient_groups')
-  .select('id, title')
-  .then(({ data, error, status }) => {
-    if (error && status !== 406) throw error
+const onSendMail = async () => {
+  sendLoading.value = true
+  const payload = {
+    status: 'pending',
+    recipients: email.value?.recipients,
+    subject: email.value?.subject,
+    body: email.value?.body,
+  }
+  await mailsStore.updateMail(route.params.id, payload)
+  sendLoading.value = false
+  toast.success('Mail zur Freigabe gesendet')
+  router.push({ name: 'Mails' })
+}
 
-    if(data) {
-      recipientsOptions.value = data
-    }
-  })
-  .catch((error) => {
-    toast.error(error.message)
-  })
-
-const saveMail = async () => {
-  supabase
-    .from('emails')
-    .upsert([
-      {
-        id: email.value.id,
-        status: email.value.status.id,
-        recipients: email.value.recipients,
-        subject: email.value.subject,
-        body: email.value.body,
-      },
-    ])
-    .select()
-    .then(({ data, error, status }) => {
-      if (error && status !== 406) throw error
-
-      if(data) {
-        toast.success("Entwurf gespeichert.")
-      }
-    })
-    .catch((error) => {
-      console.log(error)
-      toast.error(error.message)
-    })
+const onSaveMail = async () => {
+  saveLoading.value = true
+  const payload = {
+    status: 'draft',
+    recipients: recipients.value,
+    subject: subject.value,
+    body: body.value,
+  }
+  await mailsStore.addMail(payload)
+  saveLoading.value = false
+  toast.success('Mail gespeichert')
+  router.push({ name: 'Mails' })
 }
 </script>

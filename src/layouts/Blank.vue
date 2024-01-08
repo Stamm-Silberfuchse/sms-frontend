@@ -1,5 +1,5 @@
 <template>
-  <v-app theme="">
+  <v-app theme="blankTheme">
     <v-main>
       <router-view />
     </v-main>
@@ -7,8 +7,4 @@
 </template>
 
 <script setup>
-import { useTheme } from 'vuetify'
-
-const theme = useTheme()
-theme.global.name.value = 'blankTheme'
 </script>

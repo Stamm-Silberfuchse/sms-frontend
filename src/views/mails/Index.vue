@@ -5,9 +5,9 @@
     <v-row justify="start" class="mx-0 pt-0 px-3 pb-4">
       <v-btn
         color="primary"
-        @click="composeMail"
         prependIcon="mdi-email-edit-outline"
         class="mr-4 mb-4 text-none"
+        :to="{ name: 'Mail verfassen' }"
       >
         Verfassen
       </v-btn>
@@ -27,59 +27,63 @@
       </v-btn>
     </v-row>
 
-    <v-row class="mx-0 px-3">
+    <v-row class="mt-0 mx-0 px-3 pt-4">
       <v-slide-y-transition
         class="py-0"
         group
       >
-        <template v-for="(email, i) in emails" :key="`${i}-${email.id}`">
+        <template v-for="(email, i) in mails" :key="`${email.id}`">
           <v-card
-            width="100%" class="mb-1 pa-4"
+            width="100%"
+            class="mb-1 pa-4"
+            @click="router.push({ name: 'Mail bearbeiten', params: { id: email.id } })"
           >
             <v-row justify="start">
               <v-col cols="auto">
-                <Avatar :memberID="email.author.id" />
+                <Avatar :userID="email.createdUserID" :tooltip="true" tooltip-prepend="erstellt von:" />
               </v-col>
-              <v-col>
+              <v-col align-self="center">
                 <v-card-item
                   :title="email.subject"
                   class="pa-0 mail-title"
                 >
-                  <template v-slot:subtitle>
-                    <v-icon
-                      icon="mdi-calendar-outline"
-                      size="18"
-                      class="me-1 pb-1"
-                    ></v-icon>
-                    {{ getDateTime(email.created_at) }}
-                  </template>
+                  <v-card-subtitle class="pb-0">
+                    <span>
+                      {{ fdate(email.createdTimestamp) }}
+                    </span>
+                  </v-card-subtitle>
                 </v-card-item>
               </v-col>
-              <v-col cols="auto" class="pr-0" align-self="center">
-                <v-chip
-                  class="ma-2"
-                  variant="flat"
-                  :color="email.status.color"
-                  text-color="white"
-                  :prepend-icon="email.status.mdi_icon"
-                  size="small"
-                >
-                  {{ email.status.display_name }}
-                </v-chip>
+              <v-col cols="auto" class="px-0" align-self="center">
+                <StatusBadge :email="email" />
               </v-col>
               <v-col cols="auto" class="pl-0">
-                <v-btn
-                  color="primary"
-                  icon="mdi-delete"
-                  variant="text"
-                  @click="deleteMail(email.id)"
-                ></v-btn>
-                <v-btn
-                  color="primary"
-                  icon="mdi-pencil"
-                  variant="text"
-                  :to="`/mails/edit/${email.id}`"
-                ></v-btn>
+                <v-menu>
+                  <template v-slot:activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      icon="mdi-dots-vertical"
+                      variant="text"
+                    ></v-btn>
+                  </template>
+                  <v-list>
+                    <v-list-item>
+                      <v-list-item-title>
+                        Bearbeiten
+                      </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="onArchiveMail(email.id)">
+                      <v-list-item-title>
+                        Archivieren
+                      </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="onDeleteMail(email.id)">
+                      <v-list-item-title>
+                        Löschen
+                      </v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
               </v-col>
             </v-row>
           </v-card>
@@ -90,52 +94,32 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
-import { useRouter } from 'vue-router';
-import { supabase } from '@/plugins/supabase'
-import { toast } from 'vue3-toastify'
-import 'vue3-toastify/dist/index.css'
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
+import { useConfirm } from 'vuetify-use-dialog'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
+
+import { useMailsStore } from '@/store/mails'
 
 import PageTitle from '@/components/PageTitle.vue'
 import Avatar from '@/components/Avatar.vue'
+import StatusBadge from '@/components/mails/StatusBadge.vue'
 
 const router = useRouter()
 
+const createConfirm = useConfirm()
+
 const loading = ref(true)
-const emails = ref([])
-const emailStatus = ref([])
 
-function Sleep(milliseconds) {
-  return new Promise(resolve => setTimeout(resolve, milliseconds));
-}
+const mailsStore = useMailsStore()
 
-supabase
-  .from('emails')
-  .select('*, author:profiles(id, full_name) , status:email_status(*)')
-  .order('created_at', { ascending: true })
-  .then(async ({ data, error, status }) => {
-    if (error && status !== 406) throw error
-
-    if(data) {
-      for(let i = data.length-1; i >= 0; i--) {
-        emails.value.push(data[i])
-        await Sleep(40)
-      }
-      // emails.value = data
-    }
-  })
-  .catch((error) => {
-    toast.error(error.message)
-  })
-  .finally(() =>{
-    loading.value = false
-  })
-
-const composeMail = () => {
-  router.push('/mails/compose')
-}
+onMounted(async () => {
+  await mailsStore.fetchAll()
+  loading.value = false
+})
 
 const editLists = () => {
   toast.info('Not implemented yet')
@@ -145,28 +129,48 @@ const goToSettings = () => {
   toast.info('Not implemented yet')
 }
 
-const deleteMail = async (id) => {
-  supabase
-    .from('emails')
-    .delete()
-    .eq('id', id)
-    .then(async ({ error }) => {
-      if(error) {
-        throw error
-        toast.error(error.message)
-      } else {
-        emails.value = emails.value.filter(el => el.id !== id)
-        toast.success('Mail gelöscht.')
-      }
+const mails = computed(() => {
+  return mailsStore.getAllSorted
+})
+
+const onArchiveMail = async (id) => {
+  const isConfirmed = await createConfirm({
+    title: 'Mail archivieren',
+    content: 'Bist Du sicher?',
+    confirmationText: 'Ja',
+    cancellationText: 'Nein',
+    cardProps: {
+      maxWidth: 400,
+      class: "mx-auto w-100"
+    }
+  })
+  if (!isConfirmed) return
+  toast.info('Not implemented yet')
+}
+
+const onDeleteMail = async (id) => {
+  const isConfirmed = await createConfirm({
+    title: 'Mail löschen',
+    content: 'Bist Du sicher?',
+    confirmationText: 'Ja',
+    cancellationText: 'Nein',
+    cardProps: {
+      maxWidth: 400,
+      class: "mx-auto w-100"
+    }
+  })
+  if (!isConfirmed) return
+  await mailsStore.deleteMail(id)
+    .then(() => {
+      toast.success('Mail gelöscht')
     })
 }
 
-const getDateTime = (date) => {
-  return format(new Date(date), 'dd.MM.yyyy HH:mm', {locale: de})
-}
-
-const getInitials = (full_name) => {
-  return full_name.split(' ').map(n => n[0]).join('')
+const fdate = (date) => {
+  if(!!date) {
+    return format(date.toDate(), 'dd.MM.yyyy, HH:mm', {locale: de})
+  }
+  return ''
 }
 </script>
 

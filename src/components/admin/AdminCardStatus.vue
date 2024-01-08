@@ -9,7 +9,7 @@
         <div class="text-overline mb-3">
           Ausstehende Anträge
         </div>
-        <div class="text-center text-h3 font-quicksand font-weight-bold">
+        <div class="text-center text-h3 font-Quicksand font-weight-bold">
           {{ usersStore.getAmountOfUsersRegistered }}
         </div>
       </div>
@@ -119,7 +119,6 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useUsersStore } from '@/store/users'
-import { supabase } from '@/plugins/supabase'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 

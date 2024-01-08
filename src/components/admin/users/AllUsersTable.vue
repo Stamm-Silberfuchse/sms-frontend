@@ -37,25 +37,19 @@ import { useUsersStore } from '@/store/users'
 
 const usersStore = useUsersStore()
 
+const search = ref('')
+
 const headers = ref([
   {
     title: "Name",
-    key: "full_name",
-  },
-  {
-    title: "Anzeigename",
-    key: "display_name",
+    key: "displayName",
   },
   {
     title: "E-Mail",
     key: "email",
-  },
-  {
-    title: "Status",
-    key: "status",
   }
 ])
 
-const users = computed(() => usersStore.users)
+const users = computed(() => usersStore.getAllUsers)
 
 </script>

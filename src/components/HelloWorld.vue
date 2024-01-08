@@ -1,17 +1,17 @@
 <template>
   <div class="text-center">
-    <v-img height="240" src="@/assets/logo_rot.svg" />
+    <v-img height="240" :src="logoFile" />
 
     <div class="text-body-2 font-weight-light pt-8 mb-2">Willkommen beim</div>
 
-    <h1 class="text-h3 font-weight-bold font-quicksand">Silberfuchs Management System</h1>
+    <h1 class="text-h3 font-weight-bold font-Quicksand">Silberfuchs Management System</h1>
 
     <div class="py-14" />
 
     <v-row class="d-flex align-center justify-center">
       <v-col cols="auto">
         <v-btn
-          :to="{ name: 'Mail' }"
+          :to="{ name: 'Mails' }"
           min-width="164"
           variant="text"
           class="text-none"
@@ -22,6 +22,22 @@
             start
           />
           Mails
+        </v-btn>
+      </v-col>
+
+      <v-col cols="auto">
+        <v-btn
+          min-width="164"
+          variant="text"
+          :to="{ name: 'Kalender' }"
+          class="text-none"
+        >
+          <v-icon
+            icon="mdi-calendar-outline"
+            size="large"
+            start
+          />
+          Kalender
         </v-btn>
       </v-col>
 
@@ -41,39 +57,19 @@
         </v-btn>
       </v-col>
 
-      <!--
       <v-col cols="auto">
         <v-btn
-          color="primary"
-          min-width="228"
-          size="x-large"
-          variant="flat"
-          class="text-none"
-          :to="{ name: 'Mitgliederverwaltung' }"
-        >
-          <v-icon
-            icon="mdi-account-group"
-            size="large"
-            start
-          />
-          Mitglieder
-        </v-btn>
-      </v-col>
-      -->
-
-      <v-col cols="auto">
-        <v-btn
+          :to="{ name: 'Verwaltung' }"
           min-width="164"
           variant="text"
-          :to="{ name: 'Kalender' }"
           class="text-none"
         >
           <v-icon
-            icon="mdi-calendar-outline"
+            icon="mdi-account-group-outline"
             size="large"
             start
           />
-          Kalender
+          Verwaltung
         </v-btn>
       </v-col>
     </v-row>
@@ -81,5 +77,12 @@
 </template>
 
 <script setup>
-  //
+import { computed } from 'vue'
+import { useTheme } from 'vuetify'
+
+const theme = useTheme()
+
+const logoFile = computed(() => {
+  return '/logo_rot' + (theme.global.name.value.includes('dark') ? '_light' : '') + '.svg'
+})
 </script>

@@ -15,7 +15,7 @@
     font-family: 'Borel', serif !important;
 }
 
-.font-quicksand {
+.font-Quicksand {
     font-family: 'Quicksand', sans-serif !important;
 }
 
@@ -61,4 +61,8 @@
     .v-footer {
         margin-left: 0px;
     }
+}
+
+.confirm-dialog-card > .v-card-title {
+    padding: 16px 24px !important;
 }

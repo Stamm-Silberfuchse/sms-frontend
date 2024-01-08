@@ -10,18 +10,13 @@ import 'vuetify/styles'
 
 // Composables
 import { createVuetify } from 'vuetify'
-import { VDataTable } from 'vuetify/labs/VDataTable'
-import { VSkeletonLoader } from 'vuetify/labs/VSkeletonLoader'
 
 // Locales
 import { de } from 'vuetify/locale'
 
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
-  components: {
-    VDataTable,
-    VSkeletonLoader
-  },
+  components: {},
   theme: {
     defaultTheme: 'lightTheme',
     themes: {
@@ -55,6 +50,10 @@ export default createVuetify({
   defaults: {
     VBtn: {
       // class: 'pa-16',
+      elevation: 0
+    },
+    VCard: {
+      rounded: 'lg'
     },
   },
 })

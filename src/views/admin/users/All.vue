@@ -4,6 +4,10 @@
       <div class="main-div">
         <PageTitle title="Alle User" />
 
+        <v-row justify="start" class="mx-0 pt-0 px-3 pb-4">
+          <AddUserDialog />
+        </v-row>
+
         <v-row justify="start" class="mx-0 pt-0 px-3 pb-3">
           <AllUsersTable />
         </v-row>
@@ -15,5 +19,6 @@
 <script setup>
 import PageTitle from '@/components/PageTitle.vue'
 import AllUsersTable from '@/components/admin/users/AllUsersTable.vue'
+import AddUserDialog from '@/components/admin/users/AddUserDialog.vue'
 
 </script>

@@ -2,8 +2,7 @@
   <v-container class="fill-height">
     <v-responsive class="fill-height">
       <div class="main-div">
-        <PageTitle title="Dashboard" />
-        <HelloWorld />
+        <HelloWorld class="pt-16" />
       </div>
     </v-responsive>
   </v-container>

@@ -1,16 +1,15 @@
 <template>
-  <v-row class="mx-0 pt-4 pb-6 px-3" align="end">
+  <v-row class="mx-0 pt-4 pb-6 px-0">
     <v-btn
       v-if="back"
       variant="text"
       color="primary"
       icon="mdi-arrow-left"
-      style="margin-left: -16px;"
       @click="goBack"
     />
     <h1
       v-if="!loading"
-      class="heading text-primary font-quicksand"
+      :class="`heading text-primary font-Quicksand ${back ? '' : 'ml-3'}`"
     >
       {{ title }}
     </h1>

@@ -1,60 +1,70 @@
 <template>
-  <v-avatar>
+  <div>
     <template v-if="loading" >
       <v-skeleton-loader type="avatar" />
     </template>
     <template v-else>
       <v-avatar
-        :color="photoAvailable ? 'primary' : 'primary'"
+        color="primary"
         :size="size"
+        @click="!!props.to ? $router.push(props.to) : null"
+        :class="!!props.to ? 'avatar-pointer' : ''"
       >
         <v-img
-          v-if="photoAvailable"
-          :src="user?.avatar_url"
-          :alt="user?.full_name"
+          v-if="user?.photoURL?.length > 0"
+          :src="user?.photoURL"
+          :alt="user?.displayName"
           :aspect-ratio="1"
+          cover
           class="elevation-2"
         ></v-img>
-        <span v-else class="font-quicksand font-bold">
-          {{ getInitials(user?.full_name) }}
+        <span v-else class="font-Quicksand">
+          {{ getInitials(user?.displayName) }}
         </span>
         <v-tooltip
+          v-if="tooltip"
           activator="parent"
           :location="tooltipLocation"
           class="text-pre-wrap"
         >
-          {{ tooltipAppend }}{{ user?.full_name }}
+          {{ tooltipPrepend }} {{ tooltipText }} {{ tooltipAppend }}
         </v-tooltip>
       </v-avatar>
     </template>
-  </v-avatar>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { supabase } from '@/plugins/supabase'
-import { toast } from 'vue3-toastify'
-import 'vue3-toastify/dist/index.css'
+import { ref, computed } from 'vue'
+import { useUsersStore } from '@/store/users'
 
 const loading = ref(false)
 
-const user = ref(null)
+const usersStore = useUsersStore()
 
 const props = defineProps({
-  memberID: {
+  userID: {
     required: true
   },
   to: {
-    type: [ String, Boolean ],
+    type: [ Boolean, String, Object ],
     default: null
   },
   size: {
     type: [ Number, String ],
     default: 'default'
   },
+  tooltip: {
+    type: [String, Boolean],
+    default: false
+  },
   tooltipLocation: {
     type: String,
     default: 'end'
+  },
+  tooltipPrepend: {
+    type: String,
+    default: ''
   },
   tooltipAppend: {
     type: String,
@@ -62,42 +72,35 @@ const props = defineProps({
   }
 })
 
-const fetchData = () => {
-  if(props.memberID === undefined ) return
-  loading.value = true
-  supabase.from('profiles').select('*').eq('id', props.memberID).single()
-    .then(async ({ data, error, status }) => {
-      if (error && status !== 406) throw error
-
-      if(data) {
-        user.value = data
-      }
-    })
-    .catch((error) => {
-      console.error(error)
-      toast.error(error.message)
-    })
-    .finally(() =>{
-      loading.value = false
-    })
-}
-
-fetchData()
+const user = computed(() => {
+  if(props.userID == null) return null
+  return usersStore.getByID(props.userID)
+})
 
 const getInitials = (full_name) => {
   if(full_name == null) return ''
   return full_name.split(' ').map(n => n[0]).join('')
 }
 
-const photoAvailable = computed(() => {
-  return user.value?.avatar_url != null && user.value?.avatar_url.length > 0
+const tooltipText = computed(() => {
+  switch(typeof props.tooltip) {
+    case 'string':
+      return props.tooltip
+    case 'boolean':
+      return props.tooltip ? user.value?.displayName : 'sollte nicht angezeigt werden'
+    default:
+      return '-'
+  }
 })
 
 </script>
 
-<style>
+<style scoped>
 .v-skeleton-loader > div > div {
   margin-left: 0 !important;
   margin-right: 0 !important;
+}
+.avatar-pointer {
+  cursor: pointer;
 }
 </style>

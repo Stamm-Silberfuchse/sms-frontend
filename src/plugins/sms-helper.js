@@ -2,13 +2,11 @@ import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
 
 const parseField = (type, value) => {
-  // console.log("Parsing:", type)
-  // console.log("Value:", value)
-  if(value) {
-    if(type === 'DATE') {
-      return format(new Date(value), 'dd.MM.yyyy', { locale: de })
-    }
-    if(type === 'BOOL') {
+  // if(type === 'Date') {
+  //   return format(value.toDate, 'dd.MM.yyyy', { locale: de })
+  // }
+  if(value !== undefined && value !== null) {
+    if(type === 'Boolean') {
       return JSON.parse(value) ? 'Ja' : 'Nein'
     }
     if(type === 'GENDER') {
