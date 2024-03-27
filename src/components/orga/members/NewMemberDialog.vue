@@ -118,6 +118,7 @@ const createMember = async () => {
   const uid = await membersStore.addMember({
     FIRST_NAME: firstName.value,
     LAST_NAME: lastName.value,
+    NAME: `${firstName.value} ${lastName.value}`,
     begin: begin.value,
   })
   toast.success("Mitglied angelegt.")

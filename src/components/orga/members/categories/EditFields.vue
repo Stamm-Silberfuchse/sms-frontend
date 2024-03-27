@@ -12,7 +12,7 @@
       <template #item="{ element, index }">
         <v-row class="px-2">
           <v-col cols="1" class="py-1" align="center">
-            <v-icon size="14" :class="`handleFields-${props.categoryID} pt-5`">
+            <v-icon size="14" :class="`handleFields-${props.categoryID} cursor-move pt-5`">
               mdi-drag-horizontal-variant
             </v-icon>
           </v-col>
@@ -54,6 +54,7 @@
                 closeOnClick: true,
                 closeOnContentClick: true,
               }"
+              @update:model-value="onSaveField(element)"
             ></v-select>
           </v-col>
           <v-col cols="1" class="py-2 pl-2">
@@ -71,6 +72,13 @@
         </v-row>
       </template>
     </draggable>
+    <v-row justify="center">
+      <DialogCategoryFieldNew
+        :categoryID="categoryID"
+        :categoryName="categoryName"
+        :callbackFn="addFieldLocal"
+      />
+    </v-row>
   </div>
 </template>
 
@@ -81,16 +89,24 @@ import { useConfirm } from 'vuetify-use-dialog'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
+import { useFieldsStore } from '@/store/fields'
 import { useCategoriesStore } from '@/store/categories'
+
+import DialogCategoryFieldNew from '@/components/orga/members/categories/DialogCategoryFieldNew.vue'
 
 const createConfirm = useConfirm()
 
+const fieldsStore = useFieldsStore()
 const categoriesStore = useCategoriesStore()
 
 const props = defineProps({
   categoryID: {
     type: String,
     required: true
+  },
+  updates: {
+    type: Number,
+    default: 0
   }
 })
 
@@ -137,9 +153,11 @@ const loading = ref(false)
 
 const fields = ref([])
 
+const categoryName = categoriesStore.getByID(props.categoryID)?.name
+
 onMounted(() => {
-  fields.value = categoriesStore.getByID(props.categoryID)?.fields
-  fields.value?.forEach((field) => {
+  fields.value = fieldsStore.getAllByCategoryID(props.categoryID)
+  fields.value.forEach((field) => {
     field.changed = false
     field.loading = false
   })
@@ -147,59 +165,41 @@ onMounted(() => {
 
 const onSaveField = async (element) => {
   element.loading = true
-  await categoriesStore.updateCategory(props.categoryID, {
-    fields: fields.value.map((field) => {
-      return {
-        name: field.name,
-        field: field.field,
-        type: field.type,
-      }
-    })
+  await fieldsStore.updateField(element.id, {
+    name: element.name,
+    type: element.type,
   })
   element.loading = false
   element.changed = false
   toast.success('Feld wurde gespeichert.')
 }
 
-const onDeleteField = async (elemend) => {
+const onDeleteField = async (element) => {
   const isConfirmed = await createConfirm({
     title: 'Feld löschen',
     content: 'Bist Du sicher?',
   })
   if (!isConfirmed) return
-  fields.value = fields.value.filter(item => item.field !== elemend.field)
-  await categoriesStore.updateCategory(props.categoryID, {
-    fields: fields.value.map((field) => {
-      return {
-        name: field.name,
-        field: field.field,
-        type: field.type
-      }
+  fields.value = fields.value.filter(item => item.id !== element.id)
+  await fieldsStore.deleteField(element.id)
+    .catch((error) => {
+      toast.error('Fehler beim Löschen des Feldes.' + error)
+      return
     })
-  })
   toast.success('Feld gelöscht.')
 }
 
 const onResortedFields = async () => {
-  await categoriesStore.updateCategory(props.categoryID, {
-    fields: fields.value.map((field) => {
-      return {
-        name: field.name,
-        field: field.field,
-        type: field.type
-      }
+  fields.value.forEach(async (field) => {
+    field.order = fields.value.indexOf(field)
+    await fieldsStore.updateField(field.id, {
+      order: field.order
     })
   })
   toast.success('Felder-Reihenfolge gespeichert.')
 }
 
-const addField = (field) => {
-  fields.value.push({
-    ...field,
-    changed: false,
-    loading: false
-  })
+const addFieldLocal = (field) => {
+  fields.value.push(field)
 }
-
-defineExpose({ addField })
 </script>

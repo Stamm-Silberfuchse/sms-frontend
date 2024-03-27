@@ -14,9 +14,16 @@ import { createVuetify } from 'vuetify'
 // Locales
 import { de } from 'vuetify/locale'
 
+// Components
+import { VCalendar } from 'vuetify/labs/VCalendar'
+import { VTreeview } from 'vuetify/labs/VTreeview'
+
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
-  components: {},
+  components: {
+    VCalendar,
+    VTreeview
+  },
   theme: {
     defaultTheme: 'lightTheme',
     themes: {
@@ -24,14 +31,18 @@ export default createVuetify({
         dark: false,
         colors: {
           primary: '#8d1d23',
-          background: '#E0E0E0'
+          background: '#e0e0e0',
+          contrast: '#000000',
+          darker: '#d3d3d3'
         }
       },
       darkTheme: {
         dark: true,
         colors: {
           primary: '#cc666b',
-          secondary: '#5CBBF6',
+          secondary: '#5cbbf6',
+          contrast: '#ffffff',
+          darker: '#000000'
         },
       },
       blankTheme: {
@@ -39,6 +50,7 @@ export default createVuetify({
         colors: {
           primary: '#8d1d23',
           background: '#8d1d23',
+          contrast: '#000000',
         }
       },
     },

@@ -7,7 +7,6 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth'
 
 import { useAuthStore } from '@/store/auth'
 import { useUsersStore } from '@/store/users'
-import { useCategoriesStore } from '@/store/categories'
 
 const auth = getAuth()
 const authStore = useAuthStore()
@@ -19,6 +18,14 @@ onAuthStateChanged(auth, async (user) => {
     usersStore.fetchUser(user.uid)
     usersStore.bind()
     // authStore.photoURL = { ...authStore.photoURL, original: user.photoURL }
+    // check user role
+    await auth.currentUser.getIdTokenResult()
+      .then((idTokenResult) => {
+        authStore.role = idTokenResult.claims.role
+      })
+      .catch((error) => {
+        console.error(error)
+      })
   } else {
     usersStore.unbind()
     authStore.$reset()

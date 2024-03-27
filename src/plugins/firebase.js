@@ -18,6 +18,9 @@ import {
   connectStorageEmulator as fbConnectStorageEmulator
 } from "firebase/storage"
 import {
+  getFunctions as fbGetFunctions
+} from "firebase/functions"
+import {
   connectFunctionsEmulator as fbConnectFunctionsEmulator,
 } from "firebase/functions"
 
@@ -36,6 +39,7 @@ export const firebaseApp = initializeApp(firebaseConfig)
 export const db = fbGetFirestore()
 export const auth = fbGetAuth()
 export const storage = fbGetStorage()
+export const functions = fbGetFunctions(firebaseApp, "europe-west3")
 
 export const getCurrentUser = () => {
   return new Promise((resolve, reject) => {
@@ -82,8 +86,10 @@ export const signIn = async (email, password) => {
       return user
     })
     .catch((error) => {
-      console.error(error.code, error.message)
-      throw error
+      const errorCode = error.code
+      const errorMessage = error.message
+      console.error(errorCode, errorMessage)
+      return false
     })
 }
 
@@ -99,6 +105,6 @@ if (import.meta.env.VITE_FIREBASE_USE_EMULATOR === 'true' && import.meta.env.MOD
   console.log('using firebase emulator')
   fbConnectAuthEmulator(auth, 'http://localhost:9099')
   fbConnectFirestoreEmulator(db, '127.0.0.1', 8080)
-  fbConnectFunctionsEmulator(firebaseApp, 'localhost', 5001)
+  fbConnectFunctionsEmulator(functions, '127.0.0.1', 5001)
   fbConnectStorageEmulator(storage, '127.0.0.1', 9199)
 } else { console.log('using firebase production') }

@@ -9,67 +9,39 @@
         >
           <MNrLabel
             v-if="member?.MNR != null"
-            :mNr="member.MNR"
+            :mNr="member?.MNR"
             size="default"
             class="mx-2"
           ></MNrLabel>
           <Avatar
             v-if="showAvatar"
-            :memberID="member.uuid"
+            :userID="member?.uid"
             :size="32"
+            :tooltip="true"
+            tooltipPrepend="User: "
             tooltipLocation="bottom"
+            class="mx-2"
           />
-          <v-chip
-            class="ma-2"
-            variant="flat"
-            text-color="white"
-          >
-            inaktiv
-          </v-chip>
-          <v-chip
-            class="ma-2"
-            variant="flat"
-            color="orange"
-          >
-            Meute
-          </v-chip>
-          <v-chip
-            class="ma-2"
-            variant="flat"
-            color="blue-darken-4"
-          >
-            Sippe
-          </v-chip>
-          <v-chip
-            class="ma-2"
-            variant="flat"
-            color="red-darken-4"
-          >
-            Rover
-          </v-chip>
-          <v-chip
-            class="ma-2"
-            variant="flat"
-            color="yellow-darken-4"
-            prependIcon="mdi-crown"
-          >
-            StaFü
-          </v-chip>
         </PageTitle>
 
-        <v-row justify="start" class="mx-0 pt-0 px-3 pb-3">
+        <v-row
+          v-if="!loading"
+          justify="start"
+          class="mx-0 pt-0 px-3 pb-3"
+        >
           <v-btn
             color="primary"
-            :to="{ name: 'Mitglied bearbeiten', params: { id: member?.uuid } }"
+            :to="{ name: 'Mitglied bearbeiten', params: { id: member?.id } }"
             prependIcon="mdi-pencil"
             class="mr-4 mb-4 text-none"
           >
             Bearbeiten
           </v-btn>
+          <!--
           <NewContactDialog
             :memberName="`${member['FIRST_NAME']} ${member['LAST_NAME']}`"
-            :memberID="member?.uuid"
-          />
+            :memberID="member?.uid"
+          />-->
           <v-btn
             @click="goToSettings"
             prependIcon="mdi-email-edit-outline"
@@ -77,6 +49,203 @@
           >
             E-Mail-Einstellungen
           </v-btn>
+        </v-row>
+
+        <v-row
+          v-if="!loading"
+          justify="start"
+          class="mx-0 mt-0 mb-0"
+          style="padding-left: -20px;"
+        >
+          <v-col cols="12" lg="4" md="6" justify="start">
+            <v-card elevation="0" class="w-100 pa-3 mb-6">
+              <v-card-text class="mb-6 pa-0">
+                <v-card-title class="text-h5 text--primary mb-5 pr-2">
+                  <v-row class="mx-0 mt-0 pb-2">
+                    Allgemein
+                    <v-spacer></v-spacer>
+                    <DialogAllgemeinEdit :id="route.params.id" :callbackFn="reloadMember" />
+                  </v-row>
+                </v-card-title>
+                <v-row v-for="(field, k) in generalfields" :key="`${k}-${field.field}`">
+                  <v-col cols="5" class="py-1 pr-0">
+                    <v-card-text class="text-body-1 font-weight-bold py-0">
+                      {{ field.name }}:
+                    </v-card-text>
+                  </v-col>
+                  <v-col cols="7" class="py-1 pl-0">
+                    <v-card-text class="text-body-1 py-0" v-html="parseField(field.type, member[field.id])">
+                    </v-card-text>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+            <v-card v-if="isAdminOrStaFue" elevation="0" class="w-100 pa-3 mb-6">
+              <v-card-text class="mb-6 pa-0">
+                <v-card-title class="text-h5 text--primary mb-5">
+                  <v-row class="mx-0 mt-0 pb-2">
+                    Kontodaten
+                    <v-spacer></v-spacer>
+                    <DialogKontodatenEdit :id="route.params.id" :callbackFn="reloadMember" />
+                  </v-row>
+                </v-card-title>
+                <v-row
+                  v-for="(field, k) in bankfields"
+                  :key="`${k}-${field.field}`"
+                >
+                  <v-col cols="5" class="py-1 pr-0">
+                    <v-card-text class="text-body-1 font-weight-bold py-0">
+                      {{ field.name }}:
+                    </v-card-text>
+                  </v-col>
+                  <v-col cols="7" class="py-1 pl-0">
+                    <v-card-text class="text-body-1 py-0">
+                      {{ parseField(field.type, member[field.id]) }}
+                    </v-card-text>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
+
+          <v-col cols="12" lg="4" md="6" justify="start">
+            <v-card elevation="0" class="w-100 pa-3 mb-6">
+              <v-card-text class="mb-6 pa-0">
+                <v-card-title class="text-h5 text--primary mb-5">
+                  <v-row class="mx-0 mt-0 pb-2">
+                    Gruppen
+                    <v-spacer></v-spacer>
+                    <DialogGruppenEdit
+                      :memberID="route.params.id"
+                      :callbackFn="reloadMember"
+                      :groups="groups">
+                    </DialogGruppenEdit>
+                  </v-row>
+                </v-card-title>
+                <v-row
+                  v-for="(group, k) in groups"
+                  :key="`${k}-${group.id}`"
+                  class="mx-4"
+                >
+                  <v-col cols="12" class="py-1 px-0">
+                    <v-card
+                      variant="tonal"
+                      :class="`ml-${(10 - group.level) * 3}`"
+                      :style="`border-left: 6px solid ${group.color}`"
+                    >
+                      <v-card-text class="px-4 text-body-1 py-1">
+                        {{ group.name }}
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+            <v-card elevation="0" class="w-100 pa-3 mb-6">
+              <v-card-text class="mb-6 pa-0">
+                <v-card-title class="text-h5 text--primary mb-5">
+                  <v-row class="mx-0 mt-0 pb-2">
+                    Kontaktpersonen
+                    <v-spacer></v-spacer>
+                    <DialogContactNew
+                      :memberID="route.params.id"
+                      :callbackFn="reloadMember">
+                    </DialogContactNew>
+                  </v-row>
+                </v-card-title>
+                <v-row
+                  v-for="(contact, k) in member['CONTACTS']"
+                  :key="`member-${k}`"
+                  class="mx-4"
+                >
+                  <v-col cols="12" class="py-1 px-0">
+                    <v-card
+                      variant="outlined"
+                      class="pb-0"
+                    >
+                      <v-card-text class="px-3 py-2">
+                        <span class="text-h6 font-weight-medium">
+                          {{ contact.name }}
+                        </span>
+                        <span class="font-italic"> ({{ contact.relationship }})</span>
+                        <div class="mt-3"></div>
+                        <v-row
+                          v-for="(field, idx) in contact.fields"
+                          :key="`contact-field-${idx}`"
+                          class="mt-0 mb-1 ml-0"
+                        >
+                          <v-col cols="3" class="py-0 pr-0">
+                            <v-card-text class="text-body-1 font-weight-bold py-0 pl-0">
+                              {{ field.name }}:
+                            </v-card-text>
+                          </v-col>
+                          <v-col cols="9" class="py-1 pl-0">
+                            <v-card-text class="text-body-1 py-0" v-html="parseField(field.type, field.value)">
+                            </v-card-text>
+                          </v-col>
+                        </v-row>
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
+
+          <v-col cols="12" lg="4" md="6" justify="start">
+            <v-card width="100%" elevation="0" class="pa-3">
+              <v-card-text class="mb-6 pa-0">
+                <v-card-title class="text-h5 text--primary mb-5">
+                  Foto & Mitgliedschaft
+                </v-card-title>
+                <v-row class="mx-4 mb-0">
+                  <MemberAvatar :memberID="member.id" />
+                </v-row>
+                <v-row class="mt-4 mr-2">
+                  <v-col cols="4" class="py-1 pr-0">
+                    <v-card-text class="text-body-1 font-weight-bold py-0">
+                      Beitritt:
+                    </v-card-text>
+                  </v-col>
+                  <v-col class="py-1 px-0">
+                    <v-card-text class="text-body-1 py-0">
+                      {{ parseField('date', member['membership_start']) }}
+                    </v-card-text>
+                  </v-col>
+                  <v-col cols="auto" class="py-1 pl-0">
+                    <v-icon size="20">mdi-file</v-icon>
+                  </v-col>
+                </v-row>
+                <v-row v-if="!!member['membership_end']" class="mr-2">
+                  <v-col cols="4" class="py-1 pr-0">
+                    <v-card-text class="text-body-1 font-weight-bold py-0">
+                      Austritt:
+                    </v-card-text>
+                  </v-col>
+                  <v-col class="py-1 px-0">
+                    <v-card-text class="text-body-1 py-0">
+                      {{ parseField('date', member['membership_start']) }}
+                    </v-card-text>
+                  </v-col>
+                  <v-col cols="auto" class="py-1 pl-0">
+                    <v-icon size="20">mdi-file</v-icon>
+                  </v-col>
+                </v-row>
+                <v-row v-if="!!member['membership_end']" class="mr-2">
+                  <v-col cols="4" class="py-1 pr-0">
+                    <v-card-text class="text-body-1 font-weight-bold py-0">
+                      Notizen:
+                    </v-card-text>
+                  </v-col>
+                  <v-col class="py-1 px-0">
+                    <v-card-text class="text-body-1 py-0">
+                      {{ parseField('date', member['membership_start']) }}
+                    </v-card-text>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
         </v-row>
 
         <v-row
@@ -92,7 +261,7 @@
                   {{ category.name }}
                 </v-card-title>
                 <v-row
-                  v-for="(field, k) in category.fields"
+                  v-for="(field, k) in fieldsStore.getAllByCategoryID(category.id)"
                   :key="`${k}-${field.field}`"
                 >
                   <v-col cols="5" class="py-1 pr-0">
@@ -102,7 +271,7 @@
                   </v-col>
                   <v-col cols="7" class="py-1 pl-0">
                     <v-card-text class="text-body-1 py-0">
-                      {{ parseField(field.type, member[field.field]) }}
+                      {{ parseField(field.type, member[field.id]) }}
                     </v-card-text>
                   </v-col>
                 </v-row>
@@ -132,9 +301,13 @@ import de from 'date-fns/locale/de'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
+import { useAuthStore } from '@/store/auth'
 import { useUsersStore } from '@/store/users'
 import { useMembersStore } from '@/store/members'
 import { useCategoriesStore } from '@/store/categories'
+import { useFieldsStore } from '@/store/fields'
+import { useGroupsStore } from '@/store/groups'
+import { useGroupMembershipsStore } from '@/store/group_memberships'
 
 import { parseField } from '@/plugins/sms-helper'
 
@@ -142,16 +315,48 @@ import PageTitle from '@/components/PageTitle.vue'
 import Avatar from '@/components/Avatar.vue'
 import MNrLabel from '@/components/orga/members/MNrLabel.vue'
 // import NewContactDialog from '@/components/NewContactDialog.vue'
+import DialogAllgemeinEdit from '@/components/orga/members/DialogAllgemeinEdit.vue'
+import DialogKontodatenEdit from '@/components/orga/members/DialogKontodatenEdit.vue'
+import DialogGruppenEdit from '@/components/orga/members/DialogGruppenEdit.vue'
+import MemberAvatar from '@/components/orga/members/MemberAvatar.vue'
+import DialogContactNew from '@/components/orga/members/DialogContactNew.vue'
 
 const route = useRoute()
 
+const authStore = useAuthStore()
 const usersStore = useUsersStore()
 const membersStore = useMembersStore()
 const categoriesStore = useCategoriesStore()
+const fieldsStore = useFieldsStore()
+const groupsStore = useGroupsStore()
+const groupMembershipsStore = useGroupMembershipsStore()
 
 const loading = ref(true)
 
-const member = ref({id: ''})
+const member = ref({dummy: ''})
+
+const generalfields = [
+  {id: 'FIRST_NAME', field: 'FIRST_NAME', name: 'Vorname', type: 'text'},
+  {id: 'LAST_NAME', field: 'LAST_NAME', name: 'Nachname', type: 'text'},
+  {id: 'NICKNAME', field: 'NICKNAME', name: 'Fahrtenname', type: 'text'},
+  {id: 'ADDRESS', field: 'ADDRESS', name: 'Adresse', type: 'text'},
+  {id: 'ZIP_CODE', field: 'ZIP_CODE', name: 'PLZ', type: 'text'},
+  {id: 'CITY', field: 'CITY', name: 'Ort', type: 'text'},
+  {id: 'COUNTRY', field: 'COUNTRY', name: 'Land', type: 'text'},
+  {id: 'NATIONALITY', field: 'NATIONALITY', name: 'Nationalität', type: 'text'},
+  {id: 'BIRTHDAY', field: 'BIRTHDAY', name: 'Geburtstag', type: 'date'},
+  {id: 'BIRTHPLACE', field: 'BIRTHPLACE', name: 'Geburtsort', type: 'text'},
+  {id: 'PHONE', field: 'PHONE', name: 'Telefon', type: 'tel'},
+  {id: 'MOBILE', field: 'MOBILE', name: 'Mobil', type: 'tel'},
+  {id: 'EMAIL', field: 'EMAIL', name: 'E-Mail', type: 'email'}
+]
+
+const bankfields = [
+  {id: 'IBAN', field: 'IBAN', name: 'IBAN', type: 'text'},
+  {id: 'BIC', field: 'BIC', name: 'BIC', type: 'text'},
+  {id: 'MANDATE_REF', field: 'MANDATE_REF', name: 'Mandatsreferenz', type: 'text'},
+  {id: 'MANDATE_DATE', field: 'MANDATE_DATE', name: 'Mandats-Datum', type: 'date'}
+]
 
 onMounted(async () => {
   const id = route.params.id
@@ -162,22 +367,31 @@ onMounted(async () => {
   loading.value = false
 })
 
-const getMemberDataByFieldID = (field) => {
-  if(loading.value) return '...'
-  const value = memberData?.value?.find(el => el?.member_field_id === field.id)?.value
-  return parseField(field.type, value)
-}
-
 const goToSettings = () => {
   toast.info('E-Mail-Einstellungen noch nicht implementiert.')
 }
 
 const showAvatar = computed(() => {
-  return member.value?.uuid != null && member.value?.uuid.length > 0
+  return member.value?.uid != null && member.value?.uid.length > 0
+})
+
+const groups = computed(() => {
+  const groupMemberships = groupMembershipsStore.getByMemberID(route.params.id)
+  return groupMemberships.map((groupMembership) => {
+    return groupsStore.getByID(groupMembership.groupID)
+  }).sort((a, b) => a.ord - b.ord)
 })
 
 const fdate = (date) => {
   if(date === null || date === undefined) return ''
   return format(date.toDate(), 'dd.MM.yyyy, HH:mm', {locale: de})
 }
+
+const reloadMember = async () => {
+  member.value = membersStore.getByID(route.params.id)
+}
+
+const isAdminOrStaFue = computed(() => {
+  return authStore.isAdmin || authStore.isStaFue
+})
 </script>

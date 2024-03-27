@@ -69,12 +69,8 @@ export const useMembersStore = defineStore('members', {
           console.error(error)
           throw error
         })
-      this.all.push({
-        id: fbDoc.id,
-        ...payload,
-        createdTimestamp: new Date(),
-        createdUserID: getAuth().currentUser.uid
-      })
+      const newDoc = await getDoc(fbDoc)
+      this.all.push({id: newDoc.id, ...newDoc.data() })
       return fbDoc.id
     },
 

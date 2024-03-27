@@ -98,7 +98,9 @@ const editCategory = async (isActive) => {
       loading.value = false
       return
     })
-  props.callbackFn(props.id, name.value)
+  if(!!props.callbackFn) {
+    props.callbackFn(props.id, name.value)
+  }
   isActive.value = false
   loading.value = false
   toast.success('Kategoriename geändert.')

@@ -4,29 +4,30 @@
       <v-btn
         color="primary"
         v-bind="props"
-        prependIcon="mdi-tag-plus-outline"
+        prependIcon="mdi-account-multiple-plus"
         class="mr-4 mb-4 text-none"
       >
-        Einstellen
+        Anlegen
       </v-btn>
     </template>
     <template v-slot:default="{ isActive }">
       <v-card>
-        <v-form fast-fail ref="form">
+        <v-form
+          ref="form"
+          v-model="valid"
+          :loading="loading"
+          lazy-validation
+          @submit.prevent
+        >
           <v-card-title>
-            Neues Fundstück
+            Neue Gruppe
           </v-card-title>
           <v-card-text>
             <v-text-field
-              v-model="title"
-              label="Titel"
+              v-model="groupName"
+              label="Gruppenname"
               required
-              autofocus
-              :rules="titleRules"
-            ></v-text-field>
-            <v-text-field
-              v-model="description"
-              label="Beschreibung"
+              :rules="groupNameRules"
             ></v-text-field>
           </v-card-text>
           <v-divider></v-divider>
@@ -40,13 +41,13 @@
             </v-btn>
             <v-spacer></v-spacer>
             <v-btn
-              :disabled="loading || !(title.length>0)"
+              :disabled="loading || !valid"
               :loading="loading"
               color="primary"
               variant="elevated"
               class="text-none"
               type="submit"
-              @click.prevent="createFundstueck(isActive)"
+              @click.prevent="createGroup(isActive)"
             >
               Anlegen
             </v-btn>
@@ -60,30 +61,37 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { supabase } from '@/plugins/supabase'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
-import { useAuthStore } from '@/store/auth'
+
+import { useGroupsStore } from '@/store/groups'
+
+const props = defineProps({
+  callbackFn: {
+    type: Function,
+    default: null
+  }
+})
 
 const router = useRouter()
 
-const authStore = useAuthStore()
+const groupsStore = useGroupsStore()
 
 const loading = ref(false)
 
-const title = ref('')
-const description = ref('')
+const groupName = ref('')
 
 const form = ref(null)
+const valid = ref(false)
 
-const titleRules = ref([
+const groupNameRules = ref([
   value => {
     if (value?.length > 0) return true
-    return 'Bitte gib einen Titel an.'
+    return 'Bitte gib einen Namen für die Gruppe an.'
   },
 ])
 
-const createFundstueck = async () => {
+const createGroup = async (isActive) => {
   loading.value = true
   const { valid } = await form.value?.validate()
   if (!valid) {
@@ -91,26 +99,16 @@ const createFundstueck = async () => {
     loading.value = false
     return
   }
-  supabase
-    .from('fundstuecke')
-    .insert({
-      title: title.value,
-      description: description.value,
-      usr_id_create: authStore.id,
-    })
-    .select()
-    .then(({ data, error, status }) => {
-      if (error && status !== 406) throw error
-
-      if(data) {
-        toast.success("Fundstück eingestellt.")
-        router.push({ name: 'Fundstück bearbeiten', params: { id: data[0].id } })
-      }
-    })
-    .catch((error) => {
-      console.log(error)
-      toast.error(error.message)
-    })
+  const uid = await groupsStore.addGroup({
+    name: groupName.value,
+    children: [],
+    color: '#000000',
+  })
+  if(!!props.callbackFn) props.callbackFn()
+  toast.success("Gruppe angelegt.")
+  loading.value = false
+  form.value?.reset()
+  isActive.value = false
 }
 
 </script>

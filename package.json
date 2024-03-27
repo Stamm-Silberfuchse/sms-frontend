@@ -7,7 +7,7 @@
     "lint": "eslint . --fix --ignore-path .gitignore",
     "dev": "vite",
     "preview": "vite preview",
-    "deploy": "echo 'TO BE IMPLEMENTED - ATM ONLY CI/CD DEPLOYMENT IS ACTIVE'",
+    "deploy": "npm run build && firebase deploy --only hosting",
     "emulators": "firebase emulators:start --import ./emulator-data --export-on-exit ./emulator-data"
   },
   "dependencies": {
@@ -25,7 +25,7 @@
     "vue3-cookies": "^1.0.6",
     "vue3-toastify": "^0.1.13",
     "vuedraggable": "^4.1.0",
-    "vuetify": "^3.3.17",
+    "vuetify": "^3.5.9",
     "vuetify-use-dialog": "^0.6.4",
     "webfontloader": "^1.0.0"
   },
@@ -35,8 +35,8 @@
     "eslint": "^8.37.0",
     "eslint-plugin-vue": "^9.3.0",
     "sass": "^1.60.0",
-    "vite": "^4.2.0",
+    "vite": "^5.2.6",
     "vite-plugin-pwa": "^0.16.5",
-    "vite-plugin-vuetify": "^1.0.0"
+    "vite-plugin-vuetify": "^2.0.3"
   }
 }

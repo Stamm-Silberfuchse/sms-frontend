@@ -1,43 +1,28 @@
 const { logger } = require("firebase-functions")
-const { setGlobalOptions } = require("firebase-functions/v2")
-const { onDocumentCreated } = require("firebase-functions/v2/firestore")
-const { onRequest } = require("firebase-functions/v2/https")
+const { onCall, HttpsError } = require("firebase-functions/v2/https")
 
 const { initializeApp, getApps, getApp } = require("firebase-admin/app")
 const { getAuth } = require("firebase-admin/auth")
 const { getFirestore } = require("firebase-admin/firestore")
 
-const nodemailer = require("nodemailer")
+const { sendMail } = require('./mail/mailer')
 
 require('dotenv').config()
-
-setGlobalOptions({maxInstances: 2})
 
 const adminApp = getApps().length === 0 ? initializeApp() : getApp()
 const adminAuth = getAuth(adminApp)
 const adminDB = getFirestore(adminApp)
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: process.env.SMTP_SECURE,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
-
-const mailBodyHTML = (email, displayName, link) => {
+const mailBodyHTML = (name, link) => {
   return `
   <html>
   <body>
-    <p>Hi ${displayName}!</p>
+    <p>Hi ${name}!</p>
     <p>
-      Du bist eingeladen worden, das Silberfuchs-Management-System zu nutzen.<br>
+      Ein Account wurde für dich angelegt, um das Silberfuchs-Management-System zu nutzen.<br>
       Klicke auf den folgenden Link, um Deine Anmeldung abzuschließen:
     </p>
-    <a href="${link}">Anmeldung abschließen</a><br>
-    <p>Dort musst Du deine Mail-Adresse <b>${email}</b> bestätigen und ein Passwort setzen, bevor Du das SMS nutzen kannst.</p>
+    <a href="${link}">Anmeldung abschließen</a><br><br>
     <p>
       Herzlich Gut Pfad<br>
       Dein SMS-Team
@@ -47,78 +32,39 @@ const mailBodyHTML = (email, displayName, link) => {
   `
 }
 
-const mailBody = (email, displayName, link) => {
+const mailBody = (firstName, link) => {
   return `
-  Hi ${displayName}!\n\n
-  Du bist eingeladen worden, das Silberfuchs-Management-System zu nutzen.\n
+  Hi ${firstName}!\n\n
+  Ein Account wurde für dich angelegt, um das Silberfuchs-Management-System zu nutzen.\n
   Klicke auf den folgenden Link, um Deine Anmeldung abzuschließen:\n
   ${link}
-  \n
-  Dort musst Du deine Mail-Adresse ${email} bestätigen und ein Passwort setzen, bevor Du das SMS nutzen kannst.
   \n\n
   Herzlich Gut Pfad\n
   Dein SMS-Team
   `
 }
 
-/*
-exports.createUser = onDocumentCreated(
-  {
-    document: "/users/{documentId}",
-    region: "europe-west3",
-  },
-  async (event) => {
-    await adminAuth
-      .createUser({
-        uid: event.params.documentId,
-        email: event.data.data().email,
-        emailVerified: false,
-        // phoneNumber
-        password: 'qZUB-nS3A-1hTw-3B9z',
-        displayName: event.data.data().displayName,
-        // photoURL
-        disabled: true,
-      })
-      .then((userRecord) => {
-        // See the UserRecord reference doc for the contents of userRecord.
-        logger.log('Successfully created new user:', userRecord.uid)
-      })
-      .catch((error) => {
-        logger.error('Error creating new user:', error)
-      })
-    const customToken = await adminAuth.createCustomToken(event.params.documentId)
-
-    const recipient = event.data.data().email
-    const displayName = event.data.data().displayName
-    logger.log("Sending verification email to ", event.params.documentId)
-    const info = await transporter.sendMail({
-      from: {
-        name: "SMS-Team",
-        address: "<sms@stamm-silberfuechse.de>"
-      }, // sender address
-      to: recipient, // list of receivers
-      subject: "Bestätige Deine Anmeldung", // Subject line
-      text: mailBody(event.params.documentId, displayName, customToken), // plain text body
-      html: mailBodyHTML(event.params.documentId, displayName, customToken), // html body
-    })
-    logger.log("Message sent: ", info.messageId)
-})
-*/
-
-exports.createUserWithLink = onRequest(
+exports.createUserWithLink = onCall(
   {
     cors: true,
-    region: ["europe-west3"]
+    region: "europe-west3",
   },
-  async (req, res) => {
+  async (request) => {
+    if (request.auth?.token?.role !== 'admin') {
+      throw new HttpsError('permission-denied', 'Nur Administratoren dürfen neue User anlegen.')
+    }
+    // check if account already exists
+    const email = request.data?.email
+    const user = await adminAuth.getUserByEmail(email)
+      .catch((error) => {}) // if user does not exist, this fails: ignore it, we want to create the user now
+    if (user) {
+      throw new HttpsError('already-exists', 'Ein User mit dieser E-Mail-Adresse existiert bereits.')
+    }
     // Read query parameters
-    const email = req.query.email
-    const firstName = req.query.firstName
-    const lastName = req.query.lastName
-    const password = req.query.password
-    const displayName = firstName + ' ' + lastName
+    const name = request.data?.name
+    const role = request.data?.role
 
-    // Create User
+    // Create user
     const userRecord = await adminAuth
       .createUser({
         // uid
@@ -126,75 +72,94 @@ exports.createUserWithLink = onRequest(
         emailVerified: false,
         // phoneNumber
         password: 'qZUB-nS3A-1hTw-3B9z',
-        displayName: displayName,
+        displayName: name,
         // photoURL
         disabled: false,
       })
       .catch((error) => {
         logger.error('Error creating new user:', error)
-        res.status(500).send({
-          message: "Error creating new user",
-          error: error
-        })
-        return
+        throw new HttpsError('internal', 'Fehler beim Erstellen des Users.')
       })
-
     const uid = userRecord.uid
+
+    await adminAuth
+      .setCustomUserClaims(uid, { role: role })
+      .catch((error) => {
+        logger.error('Error setting custom claims:', error)
+        throw new HttpsError('internal', 'Fehler beim Setzen der Rolle für den User.')
+      })
     logger.log('Successfully created new user:', uid)
 
     // Create DB Entry for user
     const docRef = adminDB.doc(`users/${uid}`)
     docRef.set({
       email: email,
-      displayName: displayName,
-      firstName: firstName,
-      lastName: lastName,
+      name: name,
+      role: role,
+      createdUserID: request.auth.token.uid,
       createdTimestamp: new Date(),
     })
       .catch((error) => {
         logger.error("Error adding user to DB:", error)
-        res.status(500).send({
-          message: "Error adding user to DB",
-          error: error
-        })
-        return
+        throw new HttpsError('internal', 'Fehler beim Anlegen des Users in der Datenbank.')
       })
     logger.log('Successfully added user to DB:', uid)
 
-    const actionCodeSettings = {
-      url: 'http://localhost:3000/signInWithLink',
-      handleCodeInApp: true
-    }
+    // retrieve login-token
+    const token = await adminAuth
+      .createCustomToken(uid)
+      // .then((customToken) => customToken)
+      .catch((error) => {
+        logger.log('Error creating custom token:', error)
+        throw new HttpsError('internal', 'Fehler beim Erstellen des Login-Links, der an den User geschickt werden soll.')
+      })
+
+    const link = process.env.VITE_SITE_URL + '/sign-in-with-link?token=' + token
 
     // Send email to user
-    await adminAuth
-      .generateSignInWithEmailLink(email, actionCodeSettings)
-      .then(async (link) => {
-        const recipient = email
-        logger.log("Sending verification email to ", email)
-        logger.log(link)
-        const info = transporter.sendMail({
-          from: {
-            name: "SMS-Team",
-            address: process.env.SMTP_USER
-          }, // sender address
-          to: recipient, // list of receivers
-          subject: "Willkommen beim SMS", // Subject line
-          text: mailBody(email, displayName, link), // plain text body
-          html: mailBodyHTML(email, displayName, link), // html body
-        })
-        logger.log("Message sent: ", info.messageId)
-      })
-      .catch((error) => {
-        logger.error("Error sending email to user:", error)
-        res.status(500).send({
-          message: "Error sending email to user",
-          error: error
-        })
-        return
-      })
-    res.status(200).send({
-      message: `User ${displayName} erfolgreich angelegt.`
+    const recipient = email
+    const info = await sendMail(
+      recipient,
+      "Willkommen beim SMS",
+      mailBody(name, link),
+      mailBodyHTML(name, link)
+    )
+    logger.log("Message sent: ", info.messageId)
+    return "User erfolgreich angelegt."
+  }
+)
+
+exports.verifyEmail = onCall(
+  {
+    cors: true,
+    region: "europe-west3",
+  },
+  async (request) => {
+    // if (request.auth?.token?.role !== 'admin') {
+    //   throw new HttpsError('permission-denied', 'Du bist nicht zugangsberechtigt.')
+    // }
+    // Update auth user
+    const uid = request.auth?.token?.uid
+    const result = await adminAuth.updateUser(uid, {
+      emailVerified: true,
+      disabled: false
     })
+    .catch((error) => {
+      logger.error(error)
+      throw new HttpsError('internal', 'E-Mail-Adresse konnte nicht bestätigt werden. Bitte wende dich an sms@stamm-silberfuechse.de.')
+    })
+    // Update DB Entry for user
+    const docRef = adminDB.doc(`users/${uid}`)
+    docRef.set({
+      emailVerified: true,
+      disabled: false
+    }, { merge: true })
+      .catch((error) => {
+        logger.error("Error updating user in DB:", error)
+        throw new HttpsError('internal', 'Fehler beim Updaten des Users in der Datenbank.')
+      })
+    logger.log('Successfully added user to DB:', uid)
+
+    return result
   }
 )

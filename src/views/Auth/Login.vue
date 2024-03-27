@@ -123,53 +123,55 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue'
-  import { useRouter, useRoute } from 'vue-router'
-  import { signIn } from '@/plugins/firebase'
-  import { toast } from 'vue3-toastify'
-  import 'vue3-toastify/dist/index.css'
+import { ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { signIn } from '@/plugins/firebase'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
-  const router = useRouter()
-  const route = useRoute()
+const router = useRouter()
+const route = useRoute()
 
-  const loading = ref(false)
-  const valid = ref(false)
+const loading = ref(false)
+const valid = ref(false)
 
-  const visible = ref(false)
-  const formState = ref('login')
+const visible = ref(false)
+const formState = ref('login')
 
-  const email = ref('')
-  const password = ref('')
+const email = ref('')
+const password = ref('')
 
-  const emailRules = ref([
-    value => {
-      if (value) return true
-      return 'Bitte gib eine Mail-Adresse an.'
-    },
-  ])
+const emailRules = ref([
+  value => {
+    if (value) return true
+    return 'Bitte gib eine Mail-Adresse an.'
+  },
+])
 
-  const pwRules = ref([
-    value => {
-      if (value) return true
-      return 'Bitte gib ein Passwort an.'
-    },
-    value => {
-      if (value?.length > 9) return true
-      return 'Dein Passwort hat mindestens 10 Zeichen.'
-    },
-  ])
+const pwRules = ref([
+  value => {
+    if (value) return true
+    return 'Bitte gib ein Passwort an.'
+  },
+  value => {
+    if (value?.length > 9) return true
+    return 'Dein Passwort hat mindestens 10 Zeichen.'
+  },
+])
 
-  const onSignIn = async () => {
-    loading.value = true
-    const data = await signIn(email.value, password.value)
-    if (data != null) {
-      router.push(route.query.redirect || { name: 'Home' })
-      toast.success('Anmeldung erfolgreich')
-    }
-    loading.value = false
+const onSignIn = async () => {
+  loading.value = true
+  const data = await signIn(email.value, password.value)
+  if (data) {
+    router.push(route.query.redirect || { name: 'Home' })
+    toast.success('Anmeldung erfolgreich')
+  } else {
+    toast.error('Anmeldung fehlgeschlagen')
   }
+  loading.value = false
+}
 
-  const onResetPW = () => {
-    resetPW(email.value)
-  }
+const onResetPW = () => {
+  resetPW(email.value)
+}
 </script>

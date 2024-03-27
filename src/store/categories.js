@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import { reactive } from 'vue'
 import { getAuth } from 'firebase/auth'
 import { onSnapshot, doc, collection, getDoc, getDocs, addDoc, setDoc, deleteDoc } from 'firebase/firestore'
 
@@ -13,7 +12,7 @@ export const useCategoriesStore = defineStore('categories', {
   }),
   getters: {
     getAll: (state) => state.all,
-    getAllSorted: (state) => state.all.sort((a, b) => a.order - b.order),
+    getAllSorted: (state) => state.all.filter((rec) => rec.active).sort((a, b) => a.order - b.order),
     getByID: (state) => {
       return (id) => state.all.find((rec) => rec.id === id)
     },
@@ -56,38 +55,37 @@ export const useCategoriesStore = defineStore('categories', {
           console.error(error)
           throw error
         })
-      this.fetchAll()
       return {id: newDoc.id, ...payload}
     },
 
     // Update category
-    async updateCategory(docID, myPayload) {
+    async updateCategory(docID, myPayload, merge=true) {
       const docRef = doc(db, "categories", docID)
       const payload = {
         ...myPayload,
         updatedTimestamp: new Date(),
         updatedUserID: getAuth().currentUser.uid
       }
-      await setDoc(docRef, payload, { merge: true })
+      await setDoc(docRef, payload, { merge: merge })
         .catch((error) => {
           console.error(error)
           throw error
         })
-      this.fetchAll()
-      return doc.id
+      Object.keys(payload).forEach((key) => {
+        this.all.find((rec) => rec.id === docID)[key] = payload[key]
+      })
+      return this.all.find((rec) => rec.id === docID)
     },
 
     // Delete Category
-    async deleteCategory(docID, deleteLocally=false) {
+    async deleteCategory(docID) {
       const docRef = doc(db, "categories", docID)
       await deleteDoc(docRef)
         .catch((error) => {
           console.error(error)
           throw error
         })
-      if(deleteLocally) {
-        this.all = this.all.filter((rec) => rec.id !== docID)
-      }
+      this.all = this.all.filter((rec) => rec.id !== docID)
     }
   }
 })

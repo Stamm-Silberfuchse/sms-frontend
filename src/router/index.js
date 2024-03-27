@@ -27,46 +27,35 @@ const routes = [
     ],
   },
   {
-    path: '/register',
+    path: '/set-password',
     component: () => import('@/layouts/Blank.vue'),
     children: [
       {
         path: '',
-        name: 'Registrieren',
-        component: () => import('@/views/Auth/Register.vue'),
+        name: 'Set Password',
+        component: () => import('@/views/Auth/SetPassword.vue'),
       },
     ],
   },
   {
-    path: '/confirm-registration',
-    component: () => import('@/layouts/Blank.vue'),
-    children: [
-      {
-        path: '',
-        name: 'Registrierung bestätigen',
-        component: () => import('@/views/Auth/ConfirmRegistration.vue'),
-      },
-    ],
-  },
-  {
-    path: '/onboarding',
-    component: () => import('@/layouts/Blank.vue'),
-    children: [
-      {
-        path: '',
-        name: 'Onboarding',
-        component: () => import('@/views/Auth/Onboarding.vue'),
-      },
-    ],
-  },
-  {
-    path: '/signInWithLink',
+    path: '/sign-in-with-link',
     component: () => import('@/layouts/Blank.vue'),
     children: [
       {
         path: '',
         name: 'Sign In With Link',
         component: () => import('@/views/Auth/SignInWithLink.vue'),
+      },
+    ],
+  },
+  {
+    path: '/no-access',
+    component: () => import('@/layouts/Default.vue'),
+    children: [
+      {
+        path: '',
+        name: 'No Access',
+        component: () => import('@/views/NoAccess.vue'),
       },
     ],
   },
@@ -127,39 +116,6 @@ const routes = [
     ],
   },
   {
-    path: '/lostnfound',
-    meta: { requiresAuth: true },
-    component: () => import('@/layouts/Default.vue'),
-    children: [
-      {
-        path: '',
-        name: 'Fundsachen',
-        component: () => import('@/views/lostnfound/Index.vue'),
-      },
-      {
-        path: 'create',
-        name: 'Fundstück erstellen',
-        component: () => import('@/views/lostnfound/Create.vue')
-      },
-      {
-        path: ':id',
-        name: 'Fundstück',
-        children: [
-          {
-            path: '',
-            name: 'Fundstück ansehen',
-            component: () => import('@/views/lostnfound/View.vue')
-          },
-          {
-            path: 'edit',
-            name: 'Fundstück bearbeiten',
-            component: () => import('@/views/lostnfound/Edit.vue')
-          },
-        ]
-      }
-    ],
-  },
-  {
     path: '/docs',
     meta: { requiresAuth: true },
     component: () => import('@/layouts/Default.vue'),
@@ -217,12 +173,22 @@ const routes = [
               },
             ],
           },
+          {
+            path: 'categories',
+            name: 'Kategorien bearbeiten',
+            component: () => import('@/views/orga/members/categories/Edit.vue'),
+          },
         ]
       },
       {
-        path: 'categories',
-        name: 'Kategorien bearbeiten',
-        component: () => import('@/views/orga/members/categories/Edit.vue'),
+        path: 'groups',
+        children: [
+          {
+            path: '',
+            name: 'Gruppen',
+            component: () => import('@/views/orga/groups/Index.vue'),
+          }
+        ]
       },
     ],
   },
@@ -264,7 +230,7 @@ const routes = [
   },
   {
     path: '/admin',
-    meta: { requiresAuth: true, requiresAdmin: true },
+    meta: { requiresAuth: true, requiresAdminOrStaFue: true },
     component: () => import('@/layouts/Default.vue'),
     children: [
       {
@@ -305,6 +271,7 @@ const router = createRouter({
 router.beforeResolve(async (to) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
+  const requiresAdminOrStaFue = to.matched.some(record => record.meta.requiresAdminOrStaFue)
   if (requiresAuth && !await getCurrentUser()) {
     return {
       path: '/login',
@@ -313,13 +280,22 @@ router.beforeResolve(async (to) => {
   }
   const isAdmin = await auth.currentUser?.getIdTokenResult()
     .then((idTokenResult) => {
-      return true //idTokenResult.claims.role === 'admin'
+      return idTokenResult.claims.role === 'admin'
     })
     .catch((error) => {
       console.error(error)
       throw error
     })
-  if (requiresAdmin && !isAdmin) {
+  const isAdminOrStaFue = await auth.currentUser?.getIdTokenResult()
+    .then((idTokenResult) => {
+      return ['admin', 'stafue'].includes(idTokenResult.claims.role)
+    })
+    .catch((error) => {
+      console.error(error)
+      throw error
+    })
+
+  if (requiresAdmin && !isAdmin || requiresAdminOrStaFue && !isAdminOrStaFue) {
     return { name: 'No Access' }
   }
 })

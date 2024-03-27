@@ -5,7 +5,7 @@
     class="w-100"
     :to="{ name: 'Mitglieder' }"
   >
-    <v-card-item title="Mitglieder*innen">
+    <v-card-item title="Mitglieder">
       <template v-slot:subtitle>
         insgesamt
       </template>

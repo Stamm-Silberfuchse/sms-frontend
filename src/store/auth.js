@@ -18,6 +18,9 @@ export const useAuthStore = defineStore('auth', {
     isAdmin: (state) => {
       return state.role === 'admin'
     },
+    isStaFue: (state) => {
+      return state.role === 'stafue'
+    },
   },
   actions: {
     async updateProfile(payload) {

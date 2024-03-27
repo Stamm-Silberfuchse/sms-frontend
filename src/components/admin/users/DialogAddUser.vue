@@ -1,5 +1,5 @@
 <template>
-  <v-dialog width="340">
+  <v-dialog width="400">
     <template v-slot:activator="{ props }">
       <v-btn
         color="primary"
@@ -20,24 +20,16 @@
           @submit.prevent
         >
           <v-card-title>
-            Neuer User
+            User anlegen
           </v-card-title>
           <v-card-text>
             <v-text-field
-              v-model="firstName"
-              label="Vorname"
+              v-model="name"
+              label="Name"
               required
               type="text"
-              :rules="firstNameRules"
+              :rules="nameRules"
               class="py-2"
-            ></v-text-field>
-            <v-text-field
-              v-model="lastName"
-              label="Nachname"
-              required
-              type="text"
-              :rules="lastNameRules"
-              class="pb-2"
             ></v-text-field>
             <v-text-field
               v-model="email"
@@ -47,12 +39,22 @@
               :rules="emailRules"
               class="pb-2"
             ></v-text-field>
+            <v-select
+              v-model="role"
+              label="Rolle"
+              required
+              :items="roles"
+              item-title="text"
+              item-value="value"
+              class="pb-2"
+            ></v-select>
           </v-card-text>
           <v-divider></v-divider>
           <v-card-actions>
             <v-btn
               variant="text"
               class="text-none"
+              :disabled="loading"
               @click="onAbort(isActive)"
             >
               Abbrechen
@@ -77,34 +79,45 @@
 </template>
 
 <script setup>
-import { ref, computed} from 'vue'
+import { ref} from 'vue'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
-import axios from 'axios'
-
-import { useUsersStore } from '@/store/users'
-
-const usersStore = useUsersStore()
+import { getAuth } from 'firebase/auth'
+import { functions } from '@/plugins/firebase'
+import { httpsCallable } from 'firebase/functions'
 
 const loading = ref(false)
 
-const firstName = ref('')
-const lastName = ref('')
+const name = ref('')
 const email = ref('')
+const role = ref('')
 
 const form = ref(null)
 const valid = ref(false)
 
-const firstNameRules = ref([
-  value => {
-    if (value?.length > 0) return true
-    return 'Bitte gib einen Vornamen an.'
+const roles = ref([
+  {
+    text: 'Admin',
+    value: 'admin',
   },
+  {
+    text: 'StaFü',
+    value: 'stafue',
+  },
+  {
+    text: 'Führung',
+    value: 'fuehrung',
+  },
+  {
+    text: 'Mitglied',
+    value: 'mitglied',
+  }
 ])
-const lastNameRules = ref([
+
+const nameRules = ref([
   value => {
     if (value?.length > 0) return true
-    return 'Bitte gib einen Nachnamen an.'
+    return 'Bitte gib einen Namen an.'
   },
 ])
 const emailRules = ref([
@@ -127,27 +140,25 @@ const onAddUser = async (isActive) => {
     loading.value = false
     return
   }
-  await axios.get(import.meta.env.VITE_CF_CREATE_USER, {
-    params: {
-      firstName: firstName.value,
-      lastName: lastName.value,
-      email: email.value
-    }
+  const auth = getAuth()
+  const createUser = httpsCallable(functions, 'createUserWithLink')
+  const a = await createUser({
+    name: name.value,
+    email: email.value,
+    role: role.value,
+    createdUserID: auth.currentUser.uid,
   })
-  .then((response) => {
-    console.log(response)
-    isActive.value = false
-    loading.value = false
-    form.value?.reset()
-    toast.success('User erfolgreich angelegt.')
-  })
-  .catch((error) => {
-    console.error(error)
-    loading.value = false
-    toast.error('User konnte nicht angelegt werden.')
-  })
-  // await usersStore.addUser(payload)
-
+    .catch((error) => {
+      console.error(error)
+      isActive.value = false
+      loading.value = false
+      toast.error(error.message)
+      throw error
+    })
+  isActive.value = false
+  loading.value = false
+  form.value?.reset()
+  toast.success('User erfolgreich angelegt.')
 }
 
 const onAbort = (isActive) => {

@@ -1,7 +1,7 @@
 <template>
   <v-data-table
     v-model="selected"
-    :headers="headers"
+    :headers="memberList"
     :items="membersFiltered"
     :search="search"
     item-value="id"
@@ -14,6 +14,7 @@
 
     <template v-slot:top>
       <v-toolbar class="px-4">
+        <!--
         <v-chip
           variant="flat"
           :color="meute ? 'orange' : 'orange-lighten-4'"
@@ -38,11 +39,24 @@
         >
           Rover
         </v-chip>
+        -->
         <v-checkbox
           label="alle anzeigen"
           v-model="showAll"
           class="pt-5"
         ></v-checkbox>
+        <v-spacer />
+        <v-select
+          v-model="memberListChoice"
+          :items="memberListsOptions"
+          label="Liste"
+          density="compact"
+          hide-details
+          item-title="name"
+          return-object="true"
+          @update:model-value="setMemberList($event)"
+        >
+        </v-select>
         <v-spacer />
         <v-text-field
           v-model="search"
@@ -90,14 +104,14 @@
       <v-icon
         size="small"
         class="me-2"
-        @click="editMember(item.raw.id)"
+        @click="console.log(item); editMember(item.raw?.id)"
       >
         mdi-pencil
       </v-icon>
       <v-icon
         size="small"
         class="me-2"
-        @click="archiveMember(item.raw.id)"
+        @click="archiveMember(item.raw?.id)"
       >
         mdi-delete
       </v-icon>
@@ -116,28 +130,30 @@ import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
 import { useMembersStore } from '@/store/members'
+import { useMemberListsStore } from '@/store/member_lists'
 
 import MNrLabel from '@/components/orga/members/MNrLabel.vue'
 
 const $router = useRouter()
 
 const membersStore = useMembersStore()
+const memberListsStore = useMemberListsStore()
 
-const loading = ref(false)
+const loading = ref(true)
 
-const headers = ref([
+const memberListChoice = ref(null)
+
+const memberList = ref([
   { title: 'M-Nr.', key: 'MNR' },
-  // { title: 'Geschlecht', key: 'GENDER' },
   { title: 'Nachname', key: 'LAST_NAME' },
   { title: 'Vorname', key: 'FIRST_NAME' },
-  { title: 'Adresse', key: 'ADDRESS' },
-  { title: 'PLZ', key: 'ZIP_CODE' },
-  { title: 'Ort', key: 'CITY' },
-  { title: 'Geburtstag', key: 'BIRTHDAY' },
-  { title: '', key: 'actions', sortable: false, align: 'end' },
+  { title: 'Aktionen', value: 'actions', sortable: false, align: 'end' },
 ])
+
 const selected = ref([])
-const sortBy = ref([{ key: 'lastName', order: 'asc' }])
+const sortBy = ref([{ key: 'LAST_NAME', order: 'asc' }])
+
+const memberListsOptions = ref([])
 
 const members = ref([])
 
@@ -149,18 +165,21 @@ const search = ref('')
 const showAll = ref(false)
 const loadedAll = ref(false)
 
-const fetchData = async (all=false) => {
+const fetchMembers = async (all=false) => {
   loading.value = true
-
-  // fetch all members
-  const query_eq = all ? '' : 'archived'
+  //TODO: const query_eq = all ? '' : 'archived'
   await membersStore.fetchAll()
   members.value = membersStore.getAll
   loading.value = false
 }
 
-onMounted(() => {
-  fetchData()
+onMounted(async () => {
+  // fetch Members
+  await fetchMembers()
+  // fetch MemberLists
+  memberListsOptions.value = memberListsStore.getAll
+  memberListChoice.value = memberListsOptions.value[0]
+  setMemberList({ items: memberListChoice.value?.items })
 })
 
 const getGenderIcon = (value) => {
@@ -170,10 +189,6 @@ const getGenderIcon = (value) => {
     case "D": return 'mdi-gender-non-binary'
     default: return 'mdi-minus'
   }
-}
-
-const viewMember = (id) => {
-  $router.push('/members/member/' + id)
 }
 
 const editMember = (id) => {
@@ -191,15 +206,15 @@ const membersFiltered = computed(() => {
   })
 })
 
-const rowClick = (event, data) => {
-  viewMember(data.item.raw.id)
-}
-
 watch(showAll, (value) => {
   if(showAll && !loadedAll.value) {
-    fetchData(true)
+    fetchMembers(true)
     loadedAll.value = true
   }
 })
+
+const setMemberList = (event) => {
+  memberList.value = [...event.items, { title: 'Aktionen', value: 'actions', sortable: false, align: 'end' }]
+}
 
 </script>

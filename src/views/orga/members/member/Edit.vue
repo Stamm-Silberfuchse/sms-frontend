@@ -15,40 +15,43 @@
           ></MNrLabel>
           <Avatar
             v-if="showAvatar"
-            :memberID="member.uuid"
+            :userID="member.uid"
             :size="32"
+            :tooltip="true"
+            tooltipPrepend="User: "
             tooltipLocation="bottom"
+            class="mx-2"
           />
           <v-chip
-            class="ma-2"
+            class="mt-2 ml-2"
             variant="flat"
             text-color="white"
           >
             inaktiv
           </v-chip>
           <v-chip
-            class="ma-2"
+            class="mt-2 ml-2"
             variant="flat"
             color="orange"
           >
             Meute
           </v-chip>
           <v-chip
-            class="ma-2"
+            class="mt-2 ml-2"
             variant="flat"
             color="blue-darken-4"
           >
             Sippe
           </v-chip>
           <v-chip
-            class="ma-2"
+            class="mt-2 ml-2"
             variant="flat"
             color="red-darken-4"
           >
             Rover
           </v-chip>
           <v-chip
-            class="ma-2"
+            class="mt-2 ml-2"
             variant="flat"
             color="yellow-darken-4"
             prependIcon="mdi-crown"
@@ -82,14 +85,14 @@
                   {{ category.name }}
                 </v-card-title>
                 <v-row
-                  v-for="(field, k) in category.fields"
-                  :key="`${i}-${field.field}`"
+                  v-for="(field, k) in fieldsStore.getAllByCategoryID(category.id)"
+                  :key="`${i}-${field.id}`"
                 >
                   <v-col cols="12" class="py-1 px-7">
                     <v-checkbox
                       v-if="field.type === 'Boolean'"
                       :label="field.name"
-                      v-model="formData[field.field]['value']"
+                      v-model="formData[field.id]['value']"
                       @update:model-value="updateValue($event, field)"
                     ></v-checkbox>
                     <v-select
@@ -99,24 +102,16 @@
                       item-title="text"
                       item-value="value"
                       chips
-                      v-model="formData[field.field]['value']"
+                      v-model="formData[field.id]['value']"
                       @update:model-value="updateValue($event, field)"
                     ></v-select>
                     <v-text-field
                       v-else
                       :label="field.name"
                       :type="getTextFieldType(field.type)"
-                      v-model="formData[field.field]['value']"
+                      v-model="formData[field.id]['value']"
                       @update:model-value="updateValue($event, field)"
                     ></v-text-field>
-                    <!--
-                    <InputField
-                      :type="field.type"
-                      :label="field.label"
-                      :model="formData[category.id].fields[field.id]['value']"
-                      :nameIntern="formData[category.id].fields[field.id].name_intern"
-                    />
-                    -->
                   </v-col>
                 </v-row>
               </v-card-text>
@@ -148,6 +143,7 @@ import 'vue3-toastify/dist/index.css'
 import { useUsersStore } from '@/store/users'
 import { useMembersStore } from '@/store/members'
 import { useCategoriesStore } from '@/store/categories'
+import { useFieldsStore } from '@/store/fields'
 
 import PageTitle from '@/components/PageTitle.vue'
 import Avatar from '@/components/Avatar.vue'
@@ -159,6 +155,7 @@ const router = useRouter()
 const usersStore = useUsersStore()
 const membersStore = useMembersStore()
 const categoriesStore = useCategoriesStore()
+const fieldsStore = useFieldsStore()
 
 const loading = ref(true)
 const loadingSave = ref(false)
@@ -191,19 +188,16 @@ const genderOptions = [
 const initForm = async () => {
   loading.value = true
   const id = route.params.id
+  console.log(membersStore.getByID(id))
   if (membersStore.getByID(id) === undefined) {
     await membersStore.fetchMember(id)
   }
   member.value = membersStore.getByID(id)
-  const categories = categoriesStore.getAllSorted
-  categories.forEach((el) => {
-    el.fields.forEach((field) => {
-      formData.value[field.field] = {
-        value: member.value[field.field],
-        type: field.type,
-        name: field.name
-      }
-    })
+  fieldsStore.getAll.forEach((field) => {
+    formData.value[field.id] = {
+      value: member.value[field.id] || '',
+      type: field.type
+    }
   })
   updatedValues.value = {}
   loading.value = false
@@ -229,7 +223,7 @@ const getTextFieldType = (type) => {
 }
 
 const updateValue = (value, field) => {
-  updatedValues.value[field.field] = value
+  updatedValues.value[field.id] = value
 }
 
 const saveMember = async () => {
@@ -242,7 +236,7 @@ const saveMember = async () => {
 }
 
 const showAvatar = computed(() => {
-  return member.value?.uuid != null && member.value?.uuid.length > 0
+  return member.value?.uid != null && member.value?.uid.length > 0
 })
 
 const fdate = (date) => {

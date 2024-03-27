@@ -19,7 +19,7 @@
               @submit.prevent
             >
               <v-card-title>
-                Passwort festlegen
+                Lege jetzt ein Passwort fest:
               </v-card-title>
               <v-text-field
                 v-model="password"
@@ -31,7 +31,7 @@
                 variant="outlined"
                 color="primary"
                 counter
-                autocomplete="current-password"
+                autocomplete="new-password"
                 required
                 :rules="pwRules"
                 class="pb-2 pt-4"
@@ -48,7 +48,7 @@
                 variant="outlined"
                 color="primary"
                 counter
-                autocomplete="current-password"
+                autocomplete="new-password"
                 required
                 :rules="pw2Rules"
                 class="pb-2"
@@ -66,7 +66,7 @@
                 :disabled="!valid"
                 @click="onSetPasswort"
               >
-                Registrierung abschließen
+                Passwort setzen
               </v-btn>
             </v-form>
           </v-card>
@@ -79,7 +79,6 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { signIn } from '@/plugins/firebase'
 import { getAuth } from 'firebase/auth'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
@@ -99,8 +98,6 @@ const visible = ref(false)
 const password = ref('')
 const password2 = ref('')
 
-console.log(getAuth())
-
 const pwRules = ref([
   value => {
     if (value) return true
@@ -108,14 +105,14 @@ const pwRules = ref([
   },
   value => {
     if (value?.length > 9) return true
-    return 'Dein Passwort muss mindestens 10 Zeichen beinhalten.'
+    return 'Das Passwort muss mindestens 10 Zeichen beinhalten.'
   },
 ])
 
 const pw2Rules = ref([
   value => {
     if (value === password?.value) return true
-    return 'Dein Passwort stimmt nicht mit dem ersten überein.'
+    return 'Das Passwort stimmt nicht mit dem ersten überein.'
   },
 ])
 

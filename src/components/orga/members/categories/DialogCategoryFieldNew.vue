@@ -2,14 +2,14 @@
   <v-dialog width="340">
     <template v-slot:activator="{ props }">
       <v-btn
-        icon
-        size="x-small"
-        variant="flat"
+        prepend-icon="mdi-plus"
+        size="small"
+        border
+        variant="text"
         v-bind="props"
+        class="text-none mt-3"
       >
-        <v-icon size="x-large">
-          mdi-plus
-        </v-icon>
+        Hinzufügen
       </v-btn>
     </template>
     <template v-slot:default="{ isActive }">
@@ -18,7 +18,7 @@
           ref="form"
           v-model="valid"
           fast-fail
-          @submit.prevent
+          @submit.prevent="addField(isActive)"
         >
           <v-card-title>
             Feld erstellen
@@ -42,6 +42,7 @@
               label="Typ"
               single-line
               hide-details
+              return-object
               :menu-props="{
                 closeOnClick: true,
                 closeOnContentClick: true,
@@ -65,7 +66,6 @@
               variant="elevated"
               class="text-none"
               type="submit"
-              @click.prevent="addField(isActive)"
             >
               Speichern
             </v-btn>
@@ -81,10 +81,11 @@ import { ref } from 'vue'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
-import { useAuthStore } from '@/store/auth'
 import { useCategoriesStore } from '@/store/categories'
+import { useFieldsStore } from '@/store/fields'
 
 const categoriesStore = useCategoriesStore()
+const fieldsStore = useFieldsStore()
 
 const props = defineProps({
   categoryName: {
@@ -156,38 +157,31 @@ const categoryNameRules = ref([
 
 const addField = async (isActive) => {
   loading.value = true
-  let docFields = categoriesStore.getByID(props.categoryID)
-  const id = docFields.id
-  delete docFields.id
-  let otherFields = []
-  if(docFields.fields?.length > 0) {
-    docFields.fields.forEach((field) => {
-      otherFields.push({
-        name: field.name,
-        field: field.field,
-        type: field.type
-      })
-    })
-  }
-  let payload = {
-    ...docFields,
-    fields: [
-      ...otherFields,
-      {
-        name: fieldname.value,
-        field: fieldname.value.toLowerCase(),
-        type: fieldtype.value,
+  let docFields = fieldsStore.getAllByCategoryID(props.categoryID)
+  // check if element with same name already exists
+  if(docFields.length > 0) {
+    for (let i = 0; i < docFields.length; i++) {
+      if(docFields[i].name === fieldname.value) {
+        toast.error('Feld mit diesem Namen existiert bereits.')
+        loading.value = false
+        return
       }
-    ]
+    }
   }
-  await categoriesStore.updateCategory(props.categoryID, payload)
-    .catch(() => {
-      toast.error('Fehler beim Erstellen des Feldes.')
+  const payload = {
+    name: fieldname.value,
+    type: fieldtype.value.id,
+    categoryID: props.categoryID,
+    order: docFields.length
+  }
+  const docSnapshot = await fieldsStore.addField(payload)
+    .catch((error) => {
+      toast.error('Fehler beim Erstellen des Feldes.' + error)
       loading.value = false
       return
     })
   if (!!props.callbackFn) {
-    props.callbackFn(payload.fields[payload.fields.length - 1])
+    props.callbackFn(docSnapshot)
   }
   isActive.value = false
   fieldname.value = ''

@@ -23,3 +23,7 @@ pnpm-debug.log*
 *.sw?
 
 .env
+
+.firebase/
+emulator-data/
+firebase-export*

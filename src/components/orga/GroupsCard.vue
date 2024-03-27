@@ -3,6 +3,7 @@
     :loading="loading"
     variant="flat"
     class="w-100"
+    :to="{ name: 'Gruppen' }"
   >
     <v-card-item title="Gruppen">
       <template v-slot:subtitle>

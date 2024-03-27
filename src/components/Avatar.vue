@@ -1,44 +1,35 @@
 <template>
-  <div>
-    <template v-if="loading" >
-      <v-skeleton-loader type="avatar" />
-    </template>
-    <template v-else>
-      <v-avatar
-        color="primary"
-        :size="size"
-        @click="!!props.to ? $router.push(props.to) : null"
-        :class="!!props.to ? 'avatar-pointer' : ''"
-      >
-        <v-img
-          v-if="user?.photoURL?.length > 0"
-          :src="user?.photoURL"
-          :alt="user?.displayName"
-          :aspect-ratio="1"
-          cover
-          class="elevation-2"
-        ></v-img>
-        <span v-else class="font-Quicksand">
-          {{ getInitials(user?.displayName) }}
-        </span>
-        <v-tooltip
-          v-if="tooltip"
-          activator="parent"
-          :location="tooltipLocation"
-          class="text-pre-wrap"
-        >
-          {{ tooltipPrepend }} {{ tooltipText }} {{ tooltipAppend }}
-        </v-tooltip>
-      </v-avatar>
-    </template>
-  </div>
+  <v-avatar
+    color="primary"
+    :size="size"
+    @click="!!props.to ? $router.push(props.to) : null"
+    :class="!!props.to ? 'avatar-pointer' : ''"
+  >
+    <v-img
+      v-if="user?.photoURL?.length > 0"
+      :src="user?.photoURL"
+      :alt="user?.displayName"
+      :aspect-ratio="1"
+      cover
+      class="elevation-2"
+    ></v-img>
+    <span v-else class="font-Quicksand">
+      {{ getInitials(user?.displayName) }}
+    </span>
+    <v-tooltip
+      v-if="tooltip"
+      activator="parent"
+      :location="tooltipLocation"
+      class="text-pre-wrap"
+    >
+      {{ tooltipPrepend }} {{ tooltipText }} {{ tooltipAppend }}
+    </v-tooltip>
+  </v-avatar>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useUsersStore } from '@/store/users'
-
-const loading = ref(false)
 
 const usersStore = useUsersStore()
 

@@ -75,7 +75,7 @@ const categoryNameRules = ref([
 ])
 
 const props = defineProps({
-  callbackFn: {
+  onAddCategoryCallback: {
     type: Function,
     default: null,
   },
@@ -98,8 +98,8 @@ const createCategory = async (isActive) => {
     fields: [],
     order: categoriesStore.getAll.length
   })
-  if (!!props.callbackFn) {
-    props.callbackFn(newDoc)
+  if (!!props.onAddCategoryCallback) {
+    props.onAddCategoryCallback(newDoc)
   }
   loading.value = false
   isActive.value = false

@@ -97,7 +97,7 @@
           </v-list>
 
           <template v-slot:append>
-            <v-list nav :lines="false">
+            <v-list v-if="isAdmin || isStaFue" nav :lines="false">
               <v-list-item
               title="Admin"
                 prepend-icon="mdi-shield-account"
@@ -105,7 +105,7 @@
                 color="primary"
               ></v-list-item>
             </v-list>
-            <v-divider />
+            <v-divider v-if="isAdmin || isStaFue" />
             <v-list nav :lines="false">
               <v-list-item
                 title="Einstellungen"
@@ -119,8 +119,8 @@
               <template v-slot:prepend>
                 <Avatar :userID="authStore?.uid" :to="{ name: 'Account' }" tooltip="Account" />
               </template>
-              <v-list-item-title v-text="authStore?.displayName" class="ml-4" />
-              <v-list-item-subtitle v-text="authStore?.email" class="ml-4" />
+              <v-list-item-title v-text="authStore?.displayName" class="ml-1" />
+              <v-list-item-subtitle v-text="authStore?.email" class="ml-1" />
               <template v-slot:append>
                 <v-tooltip text="Abmelden">
                   <template v-slot:activator="{ props }">
@@ -172,7 +172,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
 import { signOut } from '@/plugins/firebase'
 import { useCookies } from 'vue3-cookies'
@@ -181,6 +181,10 @@ import { useAppStore } from '@/store/app'
 import { useAuthStore } from '@/store/auth'
 import { useUsersStore } from '@/store/users'
 import { useCategoriesStore } from '@/store/categories'
+import { useFieldsStore } from '@/store/fields'
+import { useGroupsStore } from '@/store/groups'
+import { useGroupMembershipsStore } from '@/store/group_memberships'
+import { useMemberListsStore } from '@/store/member_lists'
 
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
@@ -191,13 +195,16 @@ const { cookies } = useCookies()
 
 const theme = useTheme()
 
-const route = useRoute()
 const router = useRouter()
 
 const appStore = useAppStore()
 const authStore = useAuthStore()
 const usersStore = useUsersStore()
 const categoriesStore = useCategoriesStore()
+const fieldsStore = useFieldsStore()
+const groupsStore = useGroupsStore()
+const groupMembershipsStore = useGroupMembershipsStore()
+const memberListsStore = useMemberListsStore()
 
 const drawer = ref(true)
 
@@ -206,6 +213,67 @@ const displayWidth = ref(1920)
 const notifications = ref(['ghost']) // TODO: Implement notifications
 
 const loading = ref(true)
+
+const navProperties = ref([
+    {
+      title: 'Dashboard',
+      icon: 'mdi-view-dashboard-outline',
+      link: '/'
+    },
+    {
+      title: 'Mails',
+      icon: 'mdi-email-outline',
+      link: '/mails'
+    },
+    {
+      title: 'Kalender',
+      icon: 'mdi-calendar',
+      children: [
+        {
+          title: 'Übersicht',
+          icon: 'mdi-calendar-month-outline',
+          link: '/calendar/alles'
+        },
+        {
+          title: 'Heimbelegung',
+          icon: 'mdi-home-clock-outline',
+          link: '/calendar/heim'
+        },
+        {
+          title: 'Fahrten & Lager',
+          icon: 'mdi-calendar-star',
+          link: '/calendar/fahrten-lager'
+        },
+        {
+          title: 'Intern',
+          icon: 'mdi-calendar-lock-outline',
+          link: '/calendar/intern'
+        }
+      ]
+    },
+    /*
+    {
+      title: 'Fundsachen',
+      icon: 'mdi-tag-multiple-outline',
+      link: '/lostnfound'
+    },
+    {
+      title: 'Dokumente & Vorlagen',
+      icon: 'mdi-file-document-outline',
+      link: '/docs'
+    },
+    {
+      title: 'ToDos',
+      icon: 'mdi-check-all',
+      link: '/todos'
+    },
+    */
+    {
+      title: 'Verwaltung',
+      icon: 'mdi-account-group',
+      link: '/orga'
+    },
+  ])
 
 onMounted(async () => {
   loading.value = true
@@ -224,8 +292,13 @@ onMounted(async () => {
   onResize()
 
   // load Stores
-  await categoriesStore.fetchAll()
   await usersStore.fetchAll()
+  await categoriesStore.fetchAll()
+  await fieldsStore.fetchAll()
+  await groupsStore.fetchAll()
+  await groupMembershipsStore.fetchAll()
+  await memberListsStore.fetchAll()
+
   loading.value = false
 })
 
@@ -245,6 +318,14 @@ const onResize = () => {
   }
 }
 
+const isAdmin = computed(() => {
+  return authStore.isAdmin
+})
+
+const isStaFue = computed(() => {
+  return authStore.isStaFue
+})
+
 const logoFile = computed(() => {
   return '/logo_rot' + (theme.global.name.value.includes('dark') ? '_light' : '') + '.svg'
 })
@@ -257,74 +338,6 @@ onBeforeUnmount(() => {
   if (typeof window === 'undefined') return
   window.removeEventListener('resize', onResize, { passive: true })
 })
-</script>
-
-<script>
-export default {
-  data: () => ({
-    drawer: true,
-    navProperties: [
-      {
-        title: 'Dashboard',
-        icon: 'mdi-view-dashboard-outline',
-        link: '/'
-      },
-      {
-        title: 'Mails',
-        icon: 'mdi-email-outline',
-        link: '/mails'
-      },
-      {
-        title: 'Kalender',
-        icon: 'mdi-calendar',
-        children: [
-          {
-            title: 'Übersicht',
-            icon: 'mdi-calendar-month-outline',
-            link: '/calendar/alles'
-          },
-          {
-            title: 'Heimbelegung',
-            icon: 'mdi-home-clock-outline',
-            link: '/calendar/heim'
-          },
-          {
-            title: 'Fahrten & Lager',
-            icon: 'mdi-calendar-star',
-            link: '/calendar/fahrten-lager'
-          },
-          {
-            title: 'Intern',
-            icon: 'mdi-calendar-lock-outline',
-            link: '/calendar/intern'
-          }
-        ]
-      },
-      /*
-      {
-        title: 'Fundsachen',
-        icon: 'mdi-tag-multiple-outline',
-        link: '/lostnfound'
-      },
-      {
-        title: 'Dokumente & Vorlagen',
-        icon: 'mdi-file-document-outline',
-        link: '/docs'
-      },
-      {
-        title: 'ToDos',
-        icon: 'mdi-check-all',
-        link: '/todos'
-      },
-      */
-      {
-        title: 'Verwaltung',
-        icon: 'mdi-account-group',
-        link: '/orga'
-      },
-    ]
-  }),
-}
 </script>
 
 <style lang="scss">
