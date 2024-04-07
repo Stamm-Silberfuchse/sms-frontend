@@ -15,7 +15,7 @@
 
         <!-- Buttons -->
         <v-row justify="start" class="mx-0 pt-0 px-3 pb-3">
-          <NewMemberDialog />
+          <DialogMemberNew />
 
           <v-btn
             @click="router.push({ name: 'Kategorien bearbeiten'})"
@@ -40,7 +40,7 @@
 import { useRouter } from 'vue-router'
 
 import PageTitle from '@/components/PageTitle.vue'
-import NewMemberDialog from '@/components/orga/members/NewMemberDialog.vue'
+import DialogMemberNew from '@/components/orga/members/DialogMemberNew.vue'
 import MembersTable from '@/components/orga/members/MembersTable.vue'
 
 const router = useRouter()

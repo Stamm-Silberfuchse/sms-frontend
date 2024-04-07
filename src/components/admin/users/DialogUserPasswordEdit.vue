@@ -22,7 +22,7 @@
           v-model="valid"
           :loading="loading"
           lazy-validation
-          @submit.prevent
+          @submit.prevent="onUpdateUserPassword(isActive)"
         >
           <v-card-title>
             Passwort setzen
@@ -73,7 +73,6 @@
               variant="elevated"
               class="text-none"
               type="submit"
-              @click.prevent="onUpdateUserPassword(isActive)"
             >
               Speichern
             </v-btn>

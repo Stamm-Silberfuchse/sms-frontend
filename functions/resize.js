@@ -21,7 +21,7 @@ exports.resizeMemberAvatar = onObjectFinalized(
     const memberID = metadata?.memberID
     const userID = metadata?.userID
 
-    const date = format(new Date(), 'yyyy-MM-dd-HH-mm-ss')
+    const date = format(new Date(), 'yyyy-MM-dd_HH-mm-ss')
 
     if (!contentType.startsWith("image/")) {
       logger.log("This is not an image.")
@@ -34,6 +34,9 @@ exports.resizeMemberAvatar = onObjectFinalized(
       return logger.log("Already a Thumbnail.")
     }
 
+    const fileNameWithoutExt = path.basename(filePath, path.extname(filePath))
+    const fileNameShort = fileNameWithoutExt.split('__').slice(1)
+
     const storage = getStorage()
     const bucket = storage.bucket(fileBucket)
     const downloadResponse = await bucket.file(filePath).download()
@@ -45,7 +48,7 @@ exports.resizeMemberAvatar = onObjectFinalized(
       withoutEnlargement: true,
     }).webp({quality: 100}).toBuffer();
 
-    const thumbFile = bucket.file(`memberAvatars/${memberID}_${date}_thumb@200.webp`)
+    const thumbFile = bucket.file(`memberAvatars/${memberID}_${date}__${fileNameShort}_thumb@200.webp`)
     await thumbFile.save(thumbnailBuffer, {
       metadata: {
         contentType: 'image/webp'

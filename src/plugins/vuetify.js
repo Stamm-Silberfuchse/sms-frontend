@@ -33,6 +33,7 @@ export default createVuetify({
           primary: '#8d1d23',
           background: '#e0e0e0',
           contrast: '#000000',
+          contrastInv: '#ffffff',
           darker: '#d3d3d3'
         }
       },
@@ -42,6 +43,7 @@ export default createVuetify({
           primary: '#cc666b',
           secondary: '#5cbbf6',
           contrast: '#ffffff',
+          contrastInv: '#000000',
           darker: '#000000'
         },
       },

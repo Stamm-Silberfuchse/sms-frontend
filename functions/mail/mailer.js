@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
   },
 })
 
-const fromName = "SMS-Team"
+const fromName = "Silberfüchse SMS"
 
 exports.sendMail = async (recipients, subject, text, html) => {
   const info = await transporter.sendMail({

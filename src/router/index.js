@@ -252,6 +252,11 @@ const routes = [
             component: () => import('@/views/admin/users/UserStates.vue'),
           }
         ]
+      },
+      {
+        path: 'lists',
+        name: 'Listenkonfiguration',
+        component: () => import('@/views/orga/members/ListConfig.vue'),
       }
     ],
   },

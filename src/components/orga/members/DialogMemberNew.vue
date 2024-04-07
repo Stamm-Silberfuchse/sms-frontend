@@ -115,7 +115,7 @@ const createMember = async () => {
     return
   }
 
-  const uid = await membersStore.addMember({
+  const user = await membersStore.addMember({
     FIRST_NAME: firstName.value,
     LAST_NAME: lastName.value,
     NAME: `${firstName.value} ${lastName.value}`,
@@ -123,7 +123,7 @@ const createMember = async () => {
   })
   toast.success("Mitglied angelegt.")
   loading.value = false
-  router.push({ name: 'Mitglied ansehen', params: { id: uid } })
+  router.push({ name: 'Mitglied ansehen', params: { id: user?.id } })
 }
 
 </script>

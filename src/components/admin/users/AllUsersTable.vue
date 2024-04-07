@@ -6,6 +6,7 @@
     :search="search"
     :row-props="itemRowBackground"
     :loading="loading"
+    :items-per-page="25"
     class="elevation-1"
   >
     <template v-slot:top>

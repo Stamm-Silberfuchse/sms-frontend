@@ -36,6 +36,7 @@
                     v-model="firstName"
                     label="Vorname"
                     required
+                    @update:model-value="editedValues['FIRST_NAME'] = firstName"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="4" md="4" class="pb-0">
@@ -43,42 +44,49 @@
                     v-model="lastName"
                     label="Nachname"
                     required
+                    @update:model-value="editedValues['LAST_NAME'] = lastName"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="4" md="4" class="pb-0">
                   <v-text-field
                     v-model="nickname"
                     label="Fahrtenname"
+                    @update:model-value="editedValues['NICKNAME'] = nickname"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="8" md="8" class="pb-0">
                   <v-text-field
                     v-model="address"
                     label="Adresse"
+                    @update:model-value="editedValues['ADDRESS'] = address"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="4" md="4" class="pb-0">
                   <v-text-field
                     v-model="zip"
                     label="PLZ"
+                    @update:model-value="editedValues['ZIP'] = zip"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6" md="6" class="pb-0">
                   <v-text-field
                     v-model="city"
                     label="Ort"
+                    @update:model-value="editedValues['CITY'] = city"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6" md="6" class="pb-0">
                   <v-text-field
                     v-model="country"
                     label="Land"
+                    @update:model-value="editedValues['COUNTRY'] = country"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4" class="pb-0">
                   <v-text-field
                     v-model="nationality"
                     label="Nationalität"
+                    @update:model-value="editedValues['NATIONALITY'] = nationality"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6" md="4" class="pb-0">
@@ -86,24 +94,28 @@
                     v-model="birthday"
                     label="Geburtstag"
                     type="date"
+                    @update:model-value="editedValues['BIRTHDAY'] = birthday"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6" md="4" class="pb-0">
                   <v-text-field
                     v-model="birthplace"
                     label="Geburtsort"
+                    @update:model-value="editedValues['BIRTHPLACE'] = birthplace"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6" md="4" class="pb-0">
                   <v-text-field
                     v-model="phone"
                     label="Telefon (Festnetz)"
+                    @update:model-value="editedValues['PHONE'] = phone"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6" md="4" class="pb-0">
                   <v-text-field
                     v-model="mobile"
                     label="Mobil"
+                    @update:model-value="editedValues['MOBILE'] = mobile"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4" class="pb-0">
@@ -111,6 +123,7 @@
                     v-model="email"
                     label="E-Mail"
                     type="email"
+                    @update:model-value="editedValues['EMAIL'] = email"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -180,6 +193,8 @@ const email = ref('')
 
 const showDialog = ref(false)
 
+const editedValues = ref({})
+
 watch(showDialog, (newVal) => {
   if (newVal) {
     const member = membersStore.getByID(props.id)
@@ -187,7 +202,7 @@ watch(showDialog, (newVal) => {
     lastName.value = member['LAST_NAME'] || ''
     nickname.value = member['NICKNAME'] || ''
     address.value = member['ADDRESS'] || ''
-    zip.value = member['ZIP_CODE'] || ''
+    zip.value = member['ZIP'] || ''
     city.value = member['CITY'] || ''
     country.value = member['COUNTRY'] || ''
     nationality.value = member['NATIONALITY'] || ''
@@ -196,31 +211,18 @@ watch(showDialog, (newVal) => {
     phone.value = member['PHONE'] || ''
     mobile.value = member['MOBILE'] || ''
     email.value = member['EMAIL'] || ''
+    editedValues.value = {}
   }
 })
 
 const onSave = async () => {
   loading.value = true
-  const member = {
-    FIRST_NAME: firstName.value,
-    LAST_NAME: lastName.value,
-    NICKNAME: nickname.value,
-    NAME: `${firstName.value} ${lastName.value}`,
-    ADDRESS: address.value,
-    ZIP_CODE: zip.value,
-    CITY: city.value,
-    COUNTRY: country.value,
-    NATIONALITY: nationality.value,
-    BIRTHDAY: birthday.value,
-    BIRTHPLACE: birthplace.value,
-    PHONE: phone.value,
-    MOBILE: mobile.value,
-    EMAIL: email.value
-  }
-  await membersStore.updateMember(props.id, member)
+  await membersStore.updateMember(props.id, editedValues.value)
   await membersStore.fetchMember(props.id)
   await props.callbackFn()
-  toast.success('Änderungen wurden gespeichert.')
+  const numberOfChanges = Object.keys(editedValues.value)?.length
+  const pl = numberOfChanges > 1
+  toast.success(`${numberOfChanges} Änderung${pl ? 'en' : ''} wurde${pl ? 'n' : ''} gespeichert.`)
   loading.value = false
   showDialog.value = false
 }

@@ -9,10 +9,15 @@ export const useMemberListsStore = defineStore('memberLists', {
     all: []
   }),
   getters: {
-    getAll: (state) => state.all?.sort((a, b) => a.name - b.name),
+    getAll: (state) => state.all?.sort((a, b) => {
+      if (a.default) return -1;
+      if (b.default) return 1;
+      return a.name.localeCompare(b.name)
+    }),
     getByID: (state) => {
       return (id) => state.all.find((rec) => rec.id === id)
     },
+    getDefault: (state) => state.all.find((rec) => rec.default)
   },
   actions: {
     /////////////////////////////////////////////////
@@ -60,7 +65,13 @@ export const useMemberListsStore = defineStore('memberLists', {
     // Delete member_list
     async deleteMemberList(docID) {
       const docRef = doc(db, "member_lists", docID)
-      await deleteDoc(docRef)
+      try {
+        await deleteDoc(docRef)
+        await this.fetchAll()
+      } catch (error) {
+        console.error(error)
+        throw error
+      }
     }
   }
 })

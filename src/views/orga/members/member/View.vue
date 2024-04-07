@@ -80,7 +80,7 @@
                 </v-row>
               </v-card-text>
             </v-card>
-            <v-card v-if="isAdminOrStaFue" elevation="0" class="w-100 pa-3 mb-6">
+            <v-card v-if="isAdminOrStaFue" elevation="0" class="w-100 pa-3">
               <v-card-text class="mb-6 pa-0">
                 <v-card-title class="text-h5 text--primary mb-5">
                   <v-row class="mx-0 mt-0 pb-2">
@@ -141,7 +141,7 @@
                 </v-row>
               </v-card-text>
             </v-card>
-            <v-card elevation="0" class="w-100 pa-3 mb-6">
+            <v-card elevation="0" class="w-100 pa-3">
               <v-card-text class="mb-6 pa-0">
                 <v-card-title class="text-h5 text--primary mb-5">
                   <v-row class="mx-0 mt-0 pb-2">
@@ -159,33 +159,7 @@
                   class="mx-4"
                 >
                   <v-col cols="12" class="py-1 px-0">
-                    <v-card
-                      variant="outlined"
-                      class="pb-0"
-                    >
-                      <v-card-text class="px-3 py-2">
-                        <span class="text-h6 font-weight-medium">
-                          {{ contact.name }}
-                        </span>
-                        <span class="font-italic"> ({{ contact.relationship }})</span>
-                        <div class="mt-3"></div>
-                        <v-row
-                          v-for="(field, idx) in contact.fields"
-                          :key="`contact-field-${idx}`"
-                          class="mt-0 mb-1 ml-0"
-                        >
-                          <v-col cols="3" class="py-0 pr-0">
-                            <v-card-text class="text-body-1 font-weight-bold py-0 pl-0">
-                              {{ field.name }}:
-                            </v-card-text>
-                          </v-col>
-                          <v-col cols="9" class="py-1 pl-0">
-                            <v-card-text class="text-body-1 py-0" v-html="parseField(field.type, field.value)">
-                            </v-card-text>
-                          </v-col>
-                        </v-row>
-                      </v-card-text>
-                    </v-card>
+                    <ContactCard :member="member" :contact="contact" />
                   </v-col>
                 </v-row>
               </v-card-text>
@@ -283,9 +257,9 @@
 
       <div v-if="!loading" class="bottom-info mt-6">
         <div class="text-center font-weight-light" style="font-size: 14px;">
-          <p>erstellt von <b>{{ usersStore.getByID(member?.createdUserID)?.displayName }}</b> am {{ fdate(member?.createdTimestamp) }}</p>
+          <p>erstellt von <b>{{ usersStore.getByID(member?.createdUserID)?.name }}</b> am {{ fdate(member?.createdTimestamp) }}</p>
           <p v-if="member?.updatedTimestamp != null">
-            zuletzt bearbeitet von <b>{{ usersStore.getByID(member?.updatedUserID)?.displayName }}</b> am {{ fdate(member?.updatedTimestamp) }}
+            zuletzt bearbeitet von <b>{{ usersStore.getByID(member?.updatedUserID)?.name }}</b> am {{ fdate(member?.updatedTimestamp) }}
           </p>
         </div>
       </div>
@@ -320,6 +294,7 @@ import DialogKontodatenEdit from '@/components/orga/members/DialogKontodatenEdit
 import DialogGruppenEdit from '@/components/orga/members/DialogGruppenEdit.vue'
 import MemberAvatar from '@/components/orga/members/MemberAvatar.vue'
 import DialogContactNew from '@/components/orga/members/DialogContactNew.vue'
+import ContactCard from '@/components/orga/members/ContactCard.vue'
 
 const route = useRoute()
 
@@ -340,7 +315,7 @@ const generalfields = [
   {id: 'LAST_NAME', field: 'LAST_NAME', name: 'Nachname', type: 'text'},
   {id: 'NICKNAME', field: 'NICKNAME', name: 'Fahrtenname', type: 'text'},
   {id: 'ADDRESS', field: 'ADDRESS', name: 'Adresse', type: 'text'},
-  {id: 'ZIP_CODE', field: 'ZIP_CODE', name: 'PLZ', type: 'text'},
+  {id: 'ZIP', field: 'ZIP', name: 'PLZ', type: 'text'},
   {id: 'CITY', field: 'CITY', name: 'Ort', type: 'text'},
   {id: 'COUNTRY', field: 'COUNTRY', name: 'Land', type: 'text'},
   {id: 'NATIONALITY', field: 'NATIONALITY', name: 'Nationalität', type: 'text'},

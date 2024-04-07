@@ -5,11 +5,13 @@
     :items="membersFiltered"
     :search="search"
     item-value="id"
+    v-model:sort-by="sortBy"
     return-object
     show-select
-    class="elevation-1"
-    v-model:sort-by="sortBy"
+    loading-text="Lade Mitglieder..."
     :loading="loading"
+    :items-per-page="25"
+    class="elevation-0"
   >
 
     <template v-slot:top>
@@ -48,12 +50,12 @@
         <v-spacer />
         <v-select
           v-model="memberListChoice"
-          :items="memberListsOptions"
+          :items="memberListsOptionsAll"
           label="Liste"
           density="compact"
           hide-details
           item-title="name"
-          return-object="true"
+          return-object
           @update:model-value="setMemberList($event)"
         >
         </v-select>
@@ -104,6 +106,13 @@
       <v-icon
         size="small"
         class="me-2"
+        @click="viewMember(item?.id)"
+      >
+        mdi-eye
+      </v-icon>
+      <v-icon
+        size="small"
+        class="me-2"
         @click="console.log(item); editMember(item.raw?.id)"
       >
         mdi-pencil
@@ -134,26 +143,26 @@ import { useMemberListsStore } from '@/store/member_lists'
 
 import MNrLabel from '@/components/orga/members/MNrLabel.vue'
 
-const $router = useRouter()
+const router = useRouter()
 
 const membersStore = useMembersStore()
 const memberListsStore = useMemberListsStore()
 
 const loading = ref(true)
 
-const memberListChoice = ref(null)
+const memberListChoice = ref({})
 
-const memberList = ref([
-  { title: 'M-Nr.', key: 'MNR' },
-  { title: 'Nachname', key: 'LAST_NAME' },
-  { title: 'Vorname', key: 'FIRST_NAME' },
-  { title: 'Aktionen', value: 'actions', sortable: false, align: 'end' },
-])
+const memberList = ref([])
 
 const selected = ref([])
-const sortBy = ref([{ key: 'LAST_NAME', order: 'asc' }])
+const sortBy = ref([{ id: 'LAST_NAME', order: 'asc' }])
 
-const memberListsOptions = ref([])
+const memberListsOptions = ref([
+  { name: 'Default', items: [
+    { id: 'LAST_NAME', title: 'Nachname'},
+    { id: 'FIRST_NAME', title: 'Vorname' }
+  ], default: false }
+])
 
 const members = ref([])
 
@@ -191,8 +200,13 @@ const getGenderIcon = (value) => {
   }
 }
 
+const viewMember = (id) => {
+  console.log(id)
+  router.push({ name: 'Mitglied ansehen', params: { id: id } })
+}
+
 const editMember = (id) => {
-  $router.push('/members/member/' + id + '/edit')
+  router.push('/members/member/' + id + '/edit')
 }
 
 const archiveMember = (id) => {
@@ -213,8 +227,16 @@ watch(showAll, (value) => {
   }
 })
 
+const memberListsOptionsAll = computed(() => [
+  ...memberListsOptions.value,
+  { name: '- Listen bearbeiten -', items: [], default: false }
+])
+
 const setMemberList = (event) => {
+  if (event.name === '- Listen bearbeiten -') {
+    router.push({ name: 'Listenkonfiguration' })
+    return
+  }
   memberList.value = [...event.items, { title: 'Aktionen', value: 'actions', sortable: false, align: 'end' }]
 }
-
 </script>

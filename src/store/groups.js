@@ -48,7 +48,9 @@ export const useGroupsStore = defineStore('groups', {
 
       // create tree structure
       this.tree = this.all.find((rec) => rec.id === 'root') // adding root
-      this.tree = [addSubTree(this.tree, this.all, -1)[0]]
+      if (this.tree !== undefined) {
+        this.tree = [addSubTree(this.tree, this.all, -1)[0]]
+      }
     },
 
     // Add group

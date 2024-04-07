@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { getAuth } from 'firebase/auth'
-import { onSnapshot, doc, collection, getDoc, getDocs, addDoc, setDoc, deleteDoc } from 'firebase/firestore'
+import { onSnapshot, doc, collection, getDoc, getDocs, addDoc, setDoc, deleteDoc, increment } from 'firebase/firestore'
 
 import { db } from '@/plugins/firebase'
 
@@ -58,20 +58,32 @@ export const useMembersStore = defineStore('members', {
 
     // Add member
     async addMember(myPayload) {
-      const docRef = collection(db, "members")
+      const generalDocRef = doc(db, "general", "general")
+      const generalDocSnap = await getDoc(generalDocRef)
+      let latestMNr = 0
+      if (generalDocSnap.exists()) {
+        latestMNr = generalDocSnap.data()?.latestMNr
+      } else { throw Error("Unable to fetch latest member number") }
       const payload = {
         ...myPayload,
+        MNR: latestMNr + 1,
         createdTimestamp: new Date(),
         createdUserID: getAuth().currentUser.uid
       }
-      const fbDoc = await addDoc(docRef, payload)
-        .catch((error) => {
-          console.error(error)
-          throw error
-        })
-      const newDoc = await getDoc(fbDoc)
+      const memberColRef = collection(db, "members")
+      // Add member document
+      let memberDoc
+      try {
+        memberDoc = await addDoc(memberColRef, payload)
+      } catch (error) { throw error }
+      // Increment general latestMNr
+      try {
+        await setDoc(generalDocRef, {latestMNr: increment(1)}, { merge: true })
+      } catch (error) { throw error }
+      // Fetch new member document
+      const newDoc = await getDoc(memberDoc)
       this.all.push({id: newDoc.id, ...newDoc.data() })
-      return fbDoc.id
+      return memberDoc
     },
 
     // Update Member

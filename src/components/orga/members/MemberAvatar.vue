@@ -57,6 +57,14 @@
             >
               mdi-image-sync-outline
             </v-icon>
+            <v-icon
+              v-else-if="notAvailable"
+              color="white"
+              :size="40"
+              class="progress-loader"
+            >
+              mdi-image-off-outline
+            </v-icon>
           </div>
         </v-img>
       </v-avatar>
@@ -107,14 +115,19 @@ const member = computed(() => {
   return membersStore.getByID(props.memberID)
 })
 
+const notAvailable = computed(() => {
+  return !uploadLoading.value && (member.value['PHOTO_URL']?.length === 0 || false)
+})
+
 const onFileChanged = async () => {
   if(imageFile.value == null) return
   uploadLoading.value = true
-  let filename = imageFile.value[0].name
+  console.log(imageFile)
+  let filename = imageFile.value.name
   const date = format(new Date(), 'yyyy-MM-dd-HH-mm-ss')
-  filename = `${date}_${filename}`
+  filename = `${props.memberID}_${date}__${filename}`
   const metadata = {
-    contentType: imageFile.value[0].type,
+    contentType: imageFile.value.type,
     customMetadata: {
       memberID: props.memberID,
       userID: getAuth().currentUser.uid,
@@ -122,7 +135,7 @@ const onFileChanged = async () => {
   }
 
   const storageRef = fbRef(storage, 'memberAvatars/' + filename)
-  const uploadTask = uploadBytesResumable(storageRef, imageFile.value[0], metadata)
+  const uploadTask = uploadBytesResumable(storageRef, imageFile.value, metadata)
 
   uploadTask.on('state_changed',
     (snapshot) => {

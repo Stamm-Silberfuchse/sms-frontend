@@ -85,6 +85,9 @@ import 'vue3-toastify/dist/index.css'
 import { getAuth } from 'firebase/auth'
 import { functions } from '@/plugins/firebase'
 import { httpsCallable } from 'firebase/functions'
+import { useConfirm } from 'vuetify-use-dialog'
+
+const createConfirm = useConfirm()
 
 const loading = ref(false)
 
@@ -133,6 +136,12 @@ const emailRules = ref([
 ])
 
 const onAddUser = async (isActive) => {
+  const isConfirmed = await createConfirm({
+    title: 'User anlegen?',
+    content: 'Bist Du sicher?',
+  })
+  if (!isConfirmed) return
+
   loading.value = true
   const { valid } = await form.value?.validate()
   if (!valid) {

@@ -9,7 +9,6 @@
         size="x-small"
         variant="flat"
         v-bind="props"
-        @click="setGroupMemberships"
       >
         <v-icon size="x-large">
           mdi-plus-thick
@@ -60,7 +59,6 @@
               variant="elevated"
               class="text-none"
               type="submit"
-              @click.prevent="createMember(isActive)"
             >
               Anlegen
             </v-btn>
@@ -94,10 +92,6 @@ const props = defineProps({
     type: Function,
     default: async () => {}
   },
-  groups: {
-    type: Array,
-    required: true
-  }
 })
 
 const form = ref(null)
@@ -124,21 +118,31 @@ const relationshipRules = ref([
 
 const onSave = async (isActive) => {
   loading.value = true
+  const { valid } = await form.value?.validate()
+  if (!valid) {
+    toast.info('Bitte überprüfe deine Angaben.')
+    loading.value = false
+    return
+  }
 
-  let promises = []
-
-  groups.value?.forEach(async (group) => {
-    if (selectedGroups.value.includes(group.id)) {
-      promises.push(updateGroupMembership(group.id, props.memberID, true))
-    } else {
-      promises.push(updateGroupMembership(group.id, props.memberID, false))
-    }
-  })
-
-  await Promise.all(promises)
-  await groupMembershipsStore.fetchAll()
-  toast.success('Gruppenzugehörigkeit wurde geändert.')
-  loading.value = false
-  isActive.value = false
+  try {
+    await membersStore.updateMember(props.memberID, {
+      CONTACTS: [
+        ...membersStore.getByID(props.memberID)?.CONTACTS || [],
+        {
+          name: name.value,
+          relationship: relationship.value,
+        }
+      ]
+    })
+    props.callbackFn()
+    isActive.value = false
+    toast.success('Kontakt wurde angelegt.')
+  } catch (error) {
+    console.error(error)
+    toast.error('Kontakt konnte nicht angelegt werden.')
+  } finally {
+    loading.value = false
+  }
 }
 </script>

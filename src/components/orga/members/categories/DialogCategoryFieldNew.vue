@@ -40,7 +40,6 @@
               item-value="id"
               item-title="name"
               label="Typ"
-              single-line
               hide-details
               return-object
               :menu-props="{
