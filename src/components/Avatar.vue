@@ -8,13 +8,13 @@
     <v-img
       v-if="user?.photoURL?.length > 0"
       :src="user?.photoURL"
-      :alt="user?.displayName"
+      :alt="user?.name"
       :aspect-ratio="1"
       cover
       class="elevation-2"
     ></v-img>
     <span v-else class="font-Quicksand">
-      {{ getInitials(user?.displayName) }}
+      {{ getInitials(user?.name) }}
     </span>
     <v-tooltip
       v-if="tooltip"
@@ -46,7 +46,7 @@ const props = defineProps({
     default: 'default'
   },
   tooltip: {
-    type: [String, Boolean],
+    type: [ String, Boolean ],
     default: false
   },
   tooltipLocation: {
@@ -78,7 +78,7 @@ const tooltipText = computed(() => {
     case 'string':
       return props.tooltip
     case 'boolean':
-      return props.tooltip ? user.value?.displayName : 'sollte nicht angezeigt werden'
+      return props.tooltip ? user.value?.name : 'sollte nicht angezeigt werden'
     default:
       return '-'
   }

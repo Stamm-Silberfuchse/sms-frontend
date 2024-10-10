@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { getAuth } from 'firebase/auth'
-import { onSnapshot, doc, collection, getDoc, getDocs, addDoc, setDoc, deleteDoc, increment } from 'firebase/firestore'
+import { onSnapshot, doc, collection, getDoc, getDocs, addDoc, setDoc, deleteDoc, increment, query, where } from 'firebase/firestore'
 
 import { db } from '@/plugins/firebase'
 
@@ -41,8 +41,12 @@ export const useMembersStore = defineStore('members', {
       })
     },
     // Fetch one member
-    async fetchMember(uid) {
-      const docRef = doc(db, "members", uid)
+    async fetchMember(id, force = false) {
+      const docRef = doc(db, "members", id)
+      if (!force) {
+        const index = this.all.findIndex((rec) => rec.id === id)
+        if(index >= 0) { return }
+      }
       const docSnap = await getDoc(docRef)
       if (docSnap.exists()) {
         const index = this.all.findIndex((rec) => rec.id === docSnap.id)

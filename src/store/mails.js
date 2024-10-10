@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { getAuth } from 'firebase/auth'
-import { getFirestore, onSnapshot, doc, collection, query, setDoc, getDoc, getDocs, deleteDoc, addDoc } from 'firebase/firestore'
+import { getFirestore, onSnapshot, doc, collection, query, setDoc, getDoc, getDocs, deleteDoc, addDoc, orderBy, where } from 'firebase/firestore'
 
-import { db } from '@/plugins/firebase'
+import { auth, db } from '@/plugins/firebase'
 
 let binding = null
 
@@ -14,20 +14,20 @@ export const useMailsStore = defineStore('mails', {
     getAll: (state) => state.all,
     getAllSorted: (state) => {
       return state.all.sort((a, b) => {
-        return b.createdTimestamp - a.createdTimestamp
+        return a.createdTimestamp - b.createdTimestamp
       })
     },
     getByID: (state) => {
-      return (id) => state.all.find((rec) => rec.id === id)
+      return (id) => state.getAllSorted.find((rec) => rec.id === id)
     },
     getAllByStatus: (state) => {
-      return (status) => state.all.filter((rec) => rec.status === status)
+      return (status) => state.getAllSorted.filter((rec) => rec.status === status)
     },
   },
   actions: {
     ////////////// REALTIME CONNECTION //////////////
     bind() {
-      const q = query(collection(db, "mails"))
+      const q = query(collection(db, "mails"), where('status', '!=', 'archived'))
       binding = onSnapshot(q, (querySnapshot) => {
         this.all = []
         querySnapshot.forEach((doc) => {
@@ -40,16 +40,20 @@ export const useMailsStore = defineStore('mails', {
     },
     /////////////////////////////////////////////////
     // Fetch all mails
-    async fetchAll() {
-      const q = query(collection(db, "mails"))
+    async fetchAll(all=false) {
+      let q = query(collection(db, "mails"), where('status', '!=', 'archived'))
+      if (all) {
+        q = query(collection(db, "mails"))
+      }
       const querySnapshot = await getDocs(q)
       this.all = []
       querySnapshot.forEach((doc) => {
         this.all.push({id: doc.id, ...doc.data()})
       })
     },
-    async fetchMail(uid) {
-      const docRef = doc(db, "mails", uid)
+    async fetchByID(id) {
+      console.log(id)
+      const docRef = doc(db, "mails", id)
       const docSnap = await getDoc(docRef)
       if (docSnap.exists()) {
         if(this.all.find((mail) => mail.id === docSnap.id)) {
@@ -64,8 +68,6 @@ export const useMailsStore = defineStore('mails', {
     },
 
     async addMail(myPayload) {
-      const auth = getAuth()
-      const db = getFirestore()
       const userID = auth.currentUser.uid
       const payload = {
         ...myPayload,
@@ -81,32 +83,32 @@ export const useMailsStore = defineStore('mails', {
     },
 
     async updateMail(docID, myPayload) {
-      const auth = getAuth()
-      const db = getFirestore()
       const payload = {
         ...myPayload,
         updatedTimestamp: new Date(),
         updatedUserID: auth.currentUser.uid,
       }
-      await setDoc(doc(db, "mails", docID), payload, { merge: true })
-        .catch((error) => {
-          console.error(error)
-          throw error
-        })
-      return
+      try {
+        const docRef = doc(db, "mails", docID)
+        await setDoc(docRef, payload, { merge: true })
+      } catch (error) {
+        console.error("Error updating document: ", error)
+        throw error
+      }
+      this.fetchByID(docID)
     },
 
     async deleteMail(docID) {
-      const db = getFirestore()
-      await deleteDoc(doc(db, "mails", docID))
-        .catch((error) => {
-          console.error(error)
-          throw error
-        })
-      // remove from store
-      const index = this.all.findIndex((mail) => mail.id === docID)
-      this.all.splice(index, 1)
-      return
+      try {
+        const docRef = doc(db, "mails", docID)
+        await deleteDoc(docRef)
+        // remove from store
+        const index = this.all.findIndex((mail) => mail.id === docID)
+        this.all.splice(index, 1)
+      } catch (error) {
+        console.error("Error removing document: ", error)
+        throw error
+      }
     }
   }
 })

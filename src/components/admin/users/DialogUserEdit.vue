@@ -141,9 +141,13 @@ import { getAuth } from 'firebase/auth'
 import { functions } from '@/plugins/firebase'
 import { httpsCallable } from 'firebase/functions'
 import { useConfirm } from 'vuetify-use-dialog'
+import { db } from '@/plugins/firebase'
+import { doc, updateDoc } from 'firebase/firestore'
 
 import { useUsersStore } from '@/store/users'
 import { useMembersStore } from '@/store/members'
+
+const emits = defineEmits(['onSave'])
 
 const usersStore = useUsersStore()
 const membersStore = useMembersStore()
@@ -208,7 +212,7 @@ const emailRules = ref([
   },
 ])
 
-const onUpdateUser = async (uid) => {
+const onUpdateUser = async () => {
   const { valid } = await form.value?.validate()
   if (!valid) {
     toast.info('Bitte überprüfe deine Angaben.')
@@ -229,13 +233,29 @@ const onUpdateUser = async (uid) => {
       name: name.value,
       email: email.value,
       role: role.value,
-      members: members.value,
     }
     await updateUser({ uid: props.user?.id, payload: payload })
+    // update users
+    const userRef = doc(db, 'users', props.user?.id)
+    await updateDoc(userRef, { members: members.value })
+    // update removed members
+    const removedMembers = props.user?.members.filter(member => !members.value.includes(member))
+    for await (const member of removedMembers) {
+      const memberRef = doc(db, 'members', member)
+      await updateDoc(memberRef, { USER_ID: null })
+    }
+    // update added members
+    const addedMembers = members.value.filter(member => !props.user?.members.includes(member))
+    for await (const member of addedMembers) {
+      const memberRef = doc(db, 'members', member)
+      await updateDoc(memberRef, { USER_ID: props.user?.id })
+    }
+    emits('onSave')
     toast.success(`Userdaten von '${usersStore.getByID(props.user?.id)?.name}' wurden gespeichert`)
     form.value?.reset()
   } catch (error) {
     toast.error(`Userdaten von '${usersStore.getByID(props.user?.id)?.name}' konnten nicht gespeichert werden.`)
+    console.error(error)
   }
   showDialog.value = false
   loading.value = false

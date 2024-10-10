@@ -95,7 +95,10 @@
     <template v-slot:item.actions="{ item }">
       <v-row class="flex-nowrap ma-0">
         <v-col cols="3" class="pa-0">
-          <DialogUserEdit :user="item" />
+          <DialogUserEdit
+            :user="item"
+            @onSave="onSaveCallback(item)"
+          />
         </v-col>
 
         <v-col cols="3" class="pa-0">
@@ -136,6 +139,7 @@ import { useConfirm } from 'vuetify-use-dialog'
 import { useAuthStore } from '@/store/auth'
 import { useUsersStore } from '@/store/users'
 import { useMembersStore } from '@/store/members'
+import { useContactsStore } from '@/store/contacts'
 
 import DialogUserEdit from '@/components/admin/users/DialogUserEdit'
 import DialogUserPasswordEdit from '@/components/admin/users/DialogUserPasswordEdit'
@@ -146,11 +150,14 @@ const createConfirm = useConfirm()
 const authStore = useAuthStore()
 const usersStore = useUsersStore()
 const membersStore = useMembersStore()
+const contactsStore = useContactsStore()
 
 const loading = ref(false)
 
 const showAll = ref(false)
 const search = ref('')
+
+const users = ref([])
 
 const headers = ref([
   {
@@ -184,15 +191,21 @@ const headers = ref([
 const fetchMembers = async (all=false) => {
   loading.value = true
   await membersStore.fetchAll()
+  await contactsStore.fetchAll()
   loading.value = false
 }
 
 onMounted(async () => {
   // fetch Members
   await fetchMembers()
+  getUsers()
 })
 
-const users = computed(() => usersStore.getAllUsers)
+const getUsers = () => {
+  loading.value = true
+  users.value = usersStore.getAllUsers
+  loading.value = false
+}
 
 const usersFiltered = computed(() => {
   return users.value.filter((el) => {
@@ -204,8 +217,9 @@ const isAdmin = computed(() => {
   return authStore.isAdmin
 })
 
-const editItem = (item) => {
-  console.log(item)
+const onSaveCallback = async (item) => {
+  usersStore.fetchUser(item.id)
+  getUsers()
 }
 
 const onSetUserDisabled = async (uid, value) => {

@@ -34,7 +34,8 @@ export const useGroupsStore = defineStore('groups', {
       return (childID) => {
         return state.all.find((rec) => rec.children.includes(childID))
       }
-    }
+    },
+    getList: (state) => state.all.sort((a, b) => a.order - b.order)
   },
   actions: {
     // Fetch all groups

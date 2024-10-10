@@ -34,15 +34,15 @@
 
 <script setup>
 import { ref, onBeforeMount } from 'vue'
-import { getFirestore, collection, query, where, getCountFromServer } from 'firebase/firestore'
+import { db } from '@/plugins/firebase'
+import { collection, query, where, getCountFromServer } from 'firebase/firestore'
 
 const loading = ref(false)
 const numberOfMembers = ref(0)
 
 const fetchData = async () => {
   loading.value = true
-  const db = getFirestore()
-  const q = query(collection(db, 'members'), where('status', '==', 'active'))
+  const q = query(collection(db, 'members'), where('ACTIVE', '==', true))
   const snapshot = await getCountFromServer(q)
   numberOfMembers.value = snapshot.data().count
   loading.value = false

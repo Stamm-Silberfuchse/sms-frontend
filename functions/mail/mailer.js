@@ -12,18 +12,19 @@ const transporter = nodemailer.createTransport({
   },
 })
 
-const fromName = "Silberfüchse SMS"
-
-exports.sendMail = async (recipients, subject, text, html) => {
+exports.sendMail = async (to, subject, text, html, attachments=[], cc=[], bcc=[]) => {
   const info = await transporter.sendMail({
     from: {
-      name: fromName,
+      name: process.env.DEFAULT_SENDER_NAME,
       address: process.env.SMTP_USER
     }, // sender address
-    to: recipients, // list of receivers
-    subject: subject, // Subject line
+    to: to, // list of receivers
+    cc: cc, // list of copy receivers
+    bcc: bcc, // list of blind copy receivers
+    subject: subject, // subject line
     text: text, // plain text body
     html: html, // html body
+    attachments: attachments, // list of attachments
   })
   return info
 }

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { getAuth } from 'firebase/auth'
-import { onSnapshot, doc, collection, query, addDoc, setDoc, getDoc, getDocs } from 'firebase/firestore'
+import { auth } from '@/plugins/firebase'
+import { onSnapshot, doc, collection, query, addDoc, updateDoc, getDoc, getDocs } from 'firebase/firestore'
 
 import { db } from '@/plugins/firebase'
 
@@ -18,6 +18,7 @@ export const useUsersStore = defineStore('users', {
     getAllByRole: (state) => {
       return (role) => state.all.filter((user) => user.role === role)
     },
+    getMe: (state) => state.all.find((user) => user.id === auth.currentUser.uid)
   },
   actions: {
     ////////////// REALTIME CONNECTION //////////////
@@ -74,9 +75,9 @@ export const useUsersStore = defineStore('users', {
       const payload = {
         ...myPayload,
         updatedTimestamp: new Date(),
-        updatedUserID: getAuth().currentUser.uid
+        updatedUserID: auth.currentUser.uid
       }
-      await setDoc(docRef, payload, { merge: true })
+      await updateDoc(docRef, payload, { merge: true })
     },
 
     // no functionality for adding/editing/deleting users

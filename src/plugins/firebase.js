@@ -36,7 +36,7 @@ const firebaseConfig = {
 // init firebase
 export const firebaseApp = initializeApp(firebaseConfig)
 
-export const db = fbGetFirestore()
+export const db = fbGetFirestore(firebaseApp, import.meta.env.VITE_FB_DB_NAME)
 export const auth = fbGetAuth()
 export const storage = fbGetStorage()
 export const functions = fbGetFunctions(firebaseApp, "europe-west3")
@@ -101,10 +101,12 @@ export const signOut = async () => {
     })
 }
 
-if (import.meta.env.VITE_FIREBASE_USE_EMULATOR === 'true' && import.meta.env.MODE === 'development') {
+if (import.meta.env.VITE_FB_USE_EMULATOR === 'true' && import.meta.env.MODE === 'development') {
   console.log('using firebase emulator')
   fbConnectAuthEmulator(auth, 'http://localhost:9099')
   fbConnectFirestoreEmulator(db, '127.0.0.1', 8080)
   fbConnectFunctionsEmulator(functions, '127.0.0.1', 5001)
   fbConnectStorageEmulator(storage, '127.0.0.1', 9199)
-} else { console.log('using firebase production') }
+} else {
+  console.log(`using firebase ${import.meta.env.MODE}`)
+}

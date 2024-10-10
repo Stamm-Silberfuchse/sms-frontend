@@ -17,12 +17,14 @@ import { de } from 'vuetify/locale'
 // Components
 import { VCalendar } from 'vuetify/labs/VCalendar'
 import { VTreeview } from 'vuetify/labs/VTreeview'
+import { VTimePicker } from 'vuetify/labs/VTimePicker'
 
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
   components: {
     VCalendar,
-    VTreeview
+    VTreeview,
+    VTimePicker
   },
   theme: {
     defaultTheme: 'lightTheme',

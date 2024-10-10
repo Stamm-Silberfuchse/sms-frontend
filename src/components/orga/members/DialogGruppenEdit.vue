@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    width="600"
+    width="480"
     persistent
   >
     <template v-slot:activator="{ props }">
@@ -38,7 +38,7 @@
                       :class="`ml-${(10 - group.level) * 3} mb-2 select-group-card`"
                       :style="`border-left: 6px solid ${group.color}`"
                     >
-                      <v-card-text class="px-4 text-body-1 py-1">
+                      <v-card-text class="px-4 text-body-1 py-0">
                         <v-checkbox
                           v-model="selectedGroups"
                           :value="group.id"
@@ -82,25 +82,22 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
-import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore'
+import { db } from '@/plugins/firebase'
+import { doc, arrayUnion, arrayRemove, updateDoc } from 'firebase/firestore'
 
 import { useGroupsStore } from '@/store/groups'
-import { useGroupMembershipsStore } from '@/store/group_memberships'
+
+const emit = defineEmits(['onSave'])
 
 const groupsStore = useGroupsStore()
-const groupMembershipsStore = useGroupMembershipsStore()
 
 const props = defineProps({
   memberID: {
     type: String,
     required: true
-  },
-  callbackFn: {
-    type: Function,
-    default: async () => {}
   },
   groups: {
     type: Array,
@@ -112,40 +109,31 @@ const loading = ref(false)
 const selectedGroups = ref([])
 
 onMounted(() => {
-  setGroupMemberships()
+  selectedGroups.value = props.groups
 })
 
-const setGroupMemberships = async () => {
-  selectedGroups.value = groupMembershipsStore.getByMemberID(props.memberID).map((el) => el.groupID)
-}
 
 const groups = computed(() => {
-  return groupsStore.getAllSorted?.sort((a, b) => a.order - b.order)
+  return groupsStore.getList
 })
 
 const updateGroupMembership = async (groupID, memberID, value) => {
-  const db = getFirestore()
   if (value) {
     // member belongs to group
-    const q = query(collection(db, 'group_memberships'), where('memberID', '==', memberID), where('groupID', '==', groupID))
-    const querySnapshot = await getDocs(q)
-    if (querySnapshot.empty) {
-      // document does not yet exist
-      await addDoc(collection(db, 'group_memberships'), {
-        memberID: memberID,
-        groupID: groupID
-      })
-    } // else: document already exists
+    await updateDoc(doc(db, 'groups', groupID), {
+      members: arrayUnion(memberID)
+    })
+    await updateDoc(doc(db, 'members', memberID), {
+      GROUPS: arrayUnion(groupID)
+    })
   } else {
     // member does not belong to group
-    const q = query(collection(db, 'group_memberships'), where('memberID', '==', memberID), where('groupID', '==', groupID))
-    const querySnapshot = await getDocs(q)
-    if (!querySnapshot.empty) {
-      console.log(querySnapshot.size)
-      for (let k=0; k<querySnapshot.size; k++) {
-        await deleteDoc(querySnapshot.docs[k].ref)
-      }
-    }
+    await updateDoc(doc(db, 'groups', groupID), {
+      members: arrayRemove(memberID)
+    })
+    await updateDoc(doc(db, 'members', memberID), {
+      GROUPS: arrayRemove(groupID)
+    })
   }
 }
 
@@ -163,7 +151,8 @@ const onSave = async (isActive) => {
   })
 
   await Promise.all(promises)
-  await groupMembershipsStore.fetchAll()
+  await groupsStore.fetchAll()
+  emit('onSave')
   toast.success('Gruppenzugehörigkeit wurde geändert.')
   loading.value = false
   isActive.value = false

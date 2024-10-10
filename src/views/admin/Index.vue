@@ -6,10 +6,9 @@
 
         <v-row
           justify="start"
-          class="mx-0 mt-0 mb-4"
-          style="padding-left: -20px;"
+          class="mx-0 mt-4 mb-2"
         >
-          <v-col cols="12">
+          <v-col cols="12" class="py-0">
             <v-card class="mb-4 px-3">
               <v-card-text class="mb-4">
                 <v-card-title class="text-h5 text--primary mb-3 px-0">
@@ -18,245 +17,92 @@
 
                 <v-row>
                   <v-col cols="12" md="6" lg="4">
-                    <v-card
-                      class="mx-auto"
-                      color="primary"
-                      variant="tonal"
-                    >
-                      <v-card-item class="pb-0">
-                        <div>
-                          <div class="text-overline mb-3">
-                            Gesamtanzahl
-                          </div>
-                          <div class="text-center text-h3 font-quicksand font-weight-bold">
-                            {{ usersStore.getAllUsers?.length }}
-                          </div>
-                          <!--
-                            <div class="text-caption">Greyhound divisely hello coldly fonwderfully</div>
-                          -->
-                        </div>
-                      </v-card-item>
-
-                      <v-card-actions>
-                        <v-btn
-                          :to="{ name: 'Nutzer' }"
-                          class="text-none"
-                        >
-                          Alle User
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
+                    <UsersCard />
                   </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <v-row
+          justify="start"
+          class="mx-0 mt-0 mb-2"
+        >
+          <v-col cols="12" class="py-0">
+            <v-card class="mb-4 px-3">
+              <v-card-text class="mb-4">
+                <v-card-title class="text-h5 text--primary mb-3 px-0">
+                  E-Mails
+                </v-card-title>
+
+                <v-row>
                   <v-col cols="12" md="6" lg="4">
                     <v-card
                       class="mx-auto"
-                      color="primary"
-                      variant="tonal"
+                      color="warning"
+                      :variant="mailsToConfirm?.length > 0 ? 'flat' : 'tonal'"
                     >
                       <v-card-item class="pb-0">
                         <div>
                           <div class="text-overline mb-3">
-                            Rollen
+                            Freigaben ausstehend
                           </div>
                           <div class="text-center text-h3 font-quicksand font-weight-bold">
-                            5
+                            {{ mailsToConfirm?.length }}
                           </div>
-                          <!--
-                            <div class="text-caption">Greyhound divisely hello coldly fonwderfully</div>
-                          -->
                         </div>
                       </v-card-item>
 
                       <v-card-actions>
-                        <v-btn class="text-none">
-                          Zuweisung bearbeiten
-                        </v-btn>
+                        <v-spacer></v-spacer>
+                        <v-btn
+                          :icon="showEmailsToConfirm ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                          @click="showEmailsToConfirm = !showEmailsToConfirm"
+                        ></v-btn>
                       </v-card-actions>
-                    </v-card>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-            <v-card class="mb-4 px-3">
-              <v-card-text class="mb-6">
-                <v-card-title class="text-h5 text--primary mb-5 px-0">
-                  Gruppenverwaltung
-                </v-card-title>
 
-                <v-row>
-                  <v-col cols="12" md="6" lg="4" v-for="i in [1,2,3]" :key="i">
-                    <v-card
-                      class="mx-auto"
-                      color="green"
-                      variant="tonal"
-                    >
-                      <v-card-item class="pb-0">
-                        <div>
-                          <div class="text-overline mb-3">
-                            Gesamt
-                          </div>
-                          <div class="text-center text-h3 font-quicksand font-weight-bold">
-                            254
-                          </div>
-                          <!--
-                            <div class="text-caption">Greyhound divisely hello coldly fonwderfully</div>
-                          -->
+                      <v-expand-transition>
+                        <div v-show="showEmailsToConfirm">
+                          <template v-for="(email, idx) in mailsToConfirm" :key="email.id">
+                            <v-divider></v-divider>
+                            <v-card
+                              :rounded="0"
+                              variant="flat"
+                              color="transparent"
+                              :to="{ name: 'MailFreigabe', params: { id: email.id } }"
+                              class="w-100"
+                            >
+                              <v-row justify="start" class="mx-3 my-2">
+                                <v-col cols="auto" class="px-1">
+                                  <Avatar :userID="email.createdUserID" :tooltip="true" tooltip-prepend="erstellt von:" />
+                                </v-col>
+                                <v-col align-self="center">
+                                  <v-card-item
+                                    :title="email.subject"
+                                    class="pa-0 mail-title"
+                                  >
+                                    <v-card-subtitle class="pb-0">
+                                      <span>
+                                        {{ fdate(email.createdTimestamp) }}
+                                      </span>
+                                    </v-card-subtitle>
+                                    <v-chip
+                                      v-if="email.uploadedFiles?.length > 0"
+                                      label
+                                      density="compact"
+                                      prepend-icon="mdi-paperclip"
+                                      class="mt-2"
+                                    >
+                                      {{ email.uploadedFiles?.length }} Anhänge
+                                    </v-chip>
+                                  </v-card-item>
+                                </v-col>
+                              </v-row>
+                            </v-card>
+                          </template>
                         </div>
-                      </v-card-item>
-
-                      <v-card-actions>
-                        <v-btn>
-                          Button
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-            <v-card class="mb-4 px-3">
-              <v-card-text class="mb-6">
-                <v-card-title class="text-h5 text--primary mb-5 px-0">
-                  Administration
-                </v-card-title>
-
-                <v-row>
-                  <v-col cols="12" md="6" lg="4" v-for="i in [1,2,3]" :key="i">
-                    <v-card
-                      class="mx-auto"
-                      color="orange"
-                      variant="tonal"
-                    >
-                      <v-card-item class="pb-0">
-                        <div>
-                          <div class="text-overline mb-3">
-                            Gesamt
-                          </div>
-                          <div class="text-center text-h3 font-quicksand font-weight-bold">
-                            254
-                          </div>
-                          <!--
-                            <div class="text-caption">Greyhound divisely hello coldly fonwderfully</div>
-                          -->
-                        </div>
-                      </v-card-item>
-
-                      <v-card-actions>
-                        <v-btn>
-                          Button
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-            <v-card class="mb-4 px-3">
-              <v-card-text class="mb-6">
-                <v-card-title class="text-h5 text--primary mb-5 px-0">
-                  Administration
-                </v-card-title>
-
-                <v-row>
-                  <v-col cols="12" md="6" lg="4" v-for="i in [1,2,3]" :key="i">
-                    <v-card
-                      class="mx-auto"
-                      color="blue"
-                      variant="tonal"
-                    >
-                      <v-card-item class="pb-0">
-                        <div>
-                          <div class="text-overline mb-3">
-                            Gesamt
-                          </div>
-                          <div class="text-center text-h3 font-quicksand font-weight-bold">
-                            254
-                          </div>
-                          <!--
-                            <div class="text-caption">Greyhound divisely hello coldly fonwderfully</div>
-                          -->
-                        </div>
-                      </v-card-item>
-
-                      <v-card-actions>
-                        <v-btn>
-                          Button
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-            <v-card class="mb-4 px-3">
-              <v-card-text class="mb-6">
-                <v-card-title class="text-h5 text--primary mb-5 px-0">
-                  Administration
-                </v-card-title>
-
-                <v-row>
-                  <v-col cols="12" md="6" lg="4" v-for="i in [1,2,3]" :key="i">
-                    <v-card
-                      class="mx-auto"
-                      color="pink"
-                      variant="tonal"
-                    >
-                      <v-card-item class="pb-0">
-                        <div>
-                          <div class="text-overline mb-3">
-                            Gesamt
-                          </div>
-                          <div class="text-center text-h3 font-quicksand font-weight-bold">
-                            254
-                          </div>
-                          <!--
-                            <div class="text-caption">Greyhound divisely hello coldly fonwderfully</div>
-                          -->
-                        </div>
-                      </v-card-item>
-
-                      <v-card-actions>
-                        <v-btn>
-                          Button
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-            <v-card class="mb-4 px-3">
-              <v-card-text class="mb-6">
-                <v-card-title class="text-h5 text--primary mb-5 px-0">
-                  Administration
-                </v-card-title>
-
-                <v-row>
-                  <v-col cols="12" md="6" lg="4" v-for="i in [1,2,3]" :key="i">
-                    <v-card
-                      class="mx-auto"
-                      color="lime"
-                      variant="tonal"
-                    >
-                      <v-card-item class="pb-0">
-                        <div>
-                          <div class="text-overline mb-3">
-                            Gesamt
-                          </div>
-                          <div class="text-center text-h3 font-quicksand font-weight-bold">
-                            254
-                          </div>
-                          <!--
-                            <div class="text-caption">Greyhound divisely hello coldly fonwderfully</div>
-                          -->
-                        </div>
-                      </v-card-item>
-
-                      <v-card-actions>
-                        <v-btn>
-                          Button
-                        </v-btn>
-                      </v-card-actions>
+                      </v-expand-transition>
                     </v-card>
                   </v-col>
                 </v-row>
@@ -270,11 +116,38 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { format } from 'date-fns'
+import { de } from 'date-fns/locale'
+
 import { useUsersStore } from '@/store/users'
+import { useMailsStore } from '@/store/mails'
 
 import PageTitle from '@/components/PageTitle.vue'
-import AdminCardStatus from '@/components/admin/AdminCardStatus.vue'
+import Avatar from '@/components/Avatar.vue'
+import UsersCard from '@/components/admin/UsersCard.vue'
+
+const router = useRouter()
 
 const usersStore = useUsersStore()
+const mailsStore = useMailsStore()
+
+const showEmailsToConfirm = ref(false)
+
+const mailsToConfirm = computed(() => {
+  return mailsStore.getAllByStatus('pending')
+})
+
+onMounted(() => {
+  mailsStore.fetchAll()
+})
+
+const fdate = (date) => {
+  if(!!date) {
+    return format(date.toDate(), 'dd.MM.yyyy, HH:mm', {locale: de})
+  }
+  return ''
+}
 
 </script>

@@ -18,9 +18,21 @@ export const useAuthStore = defineStore('auth', {
     isAdmin: (state) => {
       return state.role === 'admin'
     },
-    isStaFue: (state) => {
+    isStafue: (state) => {
       return state.role === 'stafue'
     },
+    isFuehrung: (state) => {
+      return state.role === 'fuehrung'
+    },
+    isMitglied: (state) => {
+      return state.role === 'mitglied'
+    },
+    isMinFuehrung: (state) => {
+      return ['admin', 'stafue', 'fuehrung'].includes(state.role)
+    },
+    isMinStafue: (state) => {
+      return ['admin', 'stafue'].includes(state.role)
+    }
   },
   actions: {
     async updateProfile(payload) {

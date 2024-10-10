@@ -4,9 +4,10 @@
       <div class="main-div">
         <PageTitle title="Kein Zutritt" />
 
-        <v-row justify="start" class="mx-0 pt-0 px-3 pb-3">
+        <v-row justify="center" class="mx-0 pt-0 px-3 pb-3">
           <v-img
-            src="https://i.kym-cdn.com/entries/icons/facebook/000/030/359/cover4.jpg"
+            src="/wlz_wrong_way.png"
+            max-width="200px"
           ></v-img>
         </v-row>
       </div>

@@ -15,7 +15,7 @@
           ></MNrLabel>
           <Avatar
             v-if="showAvatar"
-            :userID="member?.uid"
+            :userID="member?.USER_ID"
             :size="32"
             :tooltip="true"
             tooltipPrepend="User: "
@@ -29,19 +29,6 @@
           justify="start"
           class="mx-0 pt-0 px-3 pb-3"
         >
-          <v-btn
-            color="primary"
-            :to="{ name: 'Mitglied bearbeiten', params: { id: member?.id } }"
-            prependIcon="mdi-pencil"
-            class="mr-4 mb-4 text-none"
-          >
-            Bearbeiten
-          </v-btn>
-          <!--
-          <NewContactDialog
-            :memberName="`${member['FIRST_NAME']} ${member['LAST_NAME']}`"
-            :memberID="member?.uid"
-          />-->
           <v-btn
             @click="goToSettings"
             prependIcon="mdi-email-edit-outline"
@@ -80,7 +67,7 @@
                 </v-row>
               </v-card-text>
             </v-card>
-            <v-card v-if="isAdminOrStaFue" elevation="0" class="w-100 pa-3">
+            <v-card v-if="isAdminOrStafue" elevation="0" class="w-100 pa-3">
               <v-card-text class="mb-6 pa-0">
                 <v-card-title class="text-h5 text--primary mb-5">
                   <v-row class="mx-0 mt-0 pb-2">
@@ -109,16 +96,17 @@
           </v-col>
 
           <v-col cols="12" lg="4" md="6" justify="start">
-            <v-card elevation="0" class="w-100 pa-3 mb-6">
+            <v-card elevation="0" class="w-100 pa-3">
               <v-card-text class="mb-6 pa-0">
                 <v-card-title class="text-h5 text--primary mb-5">
                   <v-row class="mx-0 mt-0 pb-2">
                     Gruppen
                     <v-spacer></v-spacer>
                     <DialogGruppenEdit
+                      v-if="isAdminOrStafue"
                       :memberID="route.params.id"
-                      :callbackFn="reloadMember"
-                      :groups="groups">
+                      :groups="member?.GROUPS"
+                      @onSave="reloadMember">
                     </DialogGruppenEdit>
                   </v-row>
                 </v-card-title>
@@ -141,29 +129,90 @@
                 </v-row>
               </v-card-text>
             </v-card>
-            <v-card elevation="0" class="w-100 pa-3">
+            <!--
+            <v-card elevation="0" :loading="loadingContacts" class="w-100 pa-3">
               <v-card-text class="mb-6 pa-0">
                 <v-card-title class="text-h5 text--primary mb-5">
                   <v-row class="mx-0 mt-0 pb-2">
                     Kontaktpersonen
                     <v-spacer></v-spacer>
-                    <DialogContactNew
+                    <v-menu>
+                      <template v-slot:activator="{ props }">
+                        <v-btn
+                          icon
+                          size="x-small"
+                          variant="flat"
+                          v-bind="props"
+                        >
+                          <v-icon size="x-large">
+                            mdi-pencil
+                          </v-icon>
+                        </v-btn>
+                      </template>
+                      <v-list>
+                        <v-list-item
+                          v-for="(item, index) in items"
+                          :key="index"
+                          :value="index"
+                          :prepend-icon="item.icon"
+                          @click="item.action"
+                        >
+                          <v-list-item-title>{{ item.title }}</v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
+
+                    <DialogContactsAdd
+                      v-if="isAdminOrStafue"
                       :memberID="route.params.id"
-                      :callbackFn="reloadMember">
-                    </DialogContactNew>
+                      :showDialog="showDialogContactsAdd"
+                      @callbackFn="onAddedContact"
+                      @onClose="showDialogContactsAdd = false"
+                    />
+
+                    <DialogContactsReorder
+                      v-if="isAdminOrStafue"
+                      :memberID="route.params.id"
+                      :contacts="contacts"
+                      :showDialog="showDialogContactsReorder"
+                      @onChange="loadMember"
+                      @onClose="showDialogContactsReorder = false"
+                    />
+
+                    <DialogContactsDelete
+                      v-if="isAdminOrStafue"
+                      :memberID="route.params.id"
+                      :contacts="contacts"
+                      :showDialog="showDialogContactsDelete"
+                      @onChange="loadMember"
+                      @onClose="showDialogContactsDelete = false"
+                    />
                   </v-row>
                 </v-card-title>
-                <v-row
-                  v-for="(contact, k) in member['CONTACTS']"
-                  :key="`member-${k}`"
-                  class="mx-4"
-                >
-                  <v-col cols="12" class="py-1 px-0">
-                    <ContactCard :member="member" :contact="contact" />
-                  </v-col>
-                </v-row>
+                <div>
+                  <div
+                    v-if="loadingContacts"
+                    class="d-flex align-center justify-center"
+                  >
+                    <v-progress-circular
+                      color="grey-lighten-4"
+                      indeterminate
+                    ></v-progress-circular>
+                  </div>
+                  <v-row
+                    v-else
+                    v-for="(contact, k) in contacts"
+                    :key="`contact-${contact.id}`"
+                    class="mx-4"
+                  >
+                    <v-col cols="12" class="py-1 px-0">
+                      <ContactCard :member="member" :contact="contact" />
+                    </v-col>
+                  </v-row>
+                </div>
               </v-card-text>
             </v-card>
+          -->
           </v-col>
 
           <v-col cols="12" lg="4" md="6" justify="start">
@@ -183,7 +232,7 @@
                   </v-col>
                   <v-col class="py-1 px-0">
                     <v-card-text class="text-body-1 py-0">
-                      {{ parseField('date', member['membership_start']) }}
+                      {{ parseField('date', member['begin']) }}
                     </v-card-text>
                   </v-col>
                   <v-col cols="auto" class="py-1 pl-0">
@@ -268,7 +317,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
 import format from 'date-fns/format'
 import de from 'date-fns/locale/de'
@@ -281,7 +330,7 @@ import { useMembersStore } from '@/store/members'
 import { useCategoriesStore } from '@/store/categories'
 import { useFieldsStore } from '@/store/fields'
 import { useGroupsStore } from '@/store/groups'
-import { useGroupMembershipsStore } from '@/store/group_memberships'
+import { useContactsStore } from '@/store/contacts'
 
 import { parseField } from '@/plugins/sms-helper'
 
@@ -293,7 +342,9 @@ import DialogAllgemeinEdit from '@/components/orga/members/DialogAllgemeinEdit.v
 import DialogKontodatenEdit from '@/components/orga/members/DialogKontodatenEdit.vue'
 import DialogGruppenEdit from '@/components/orga/members/DialogGruppenEdit.vue'
 import MemberAvatar from '@/components/orga/members/MemberAvatar.vue'
-import DialogContactNew from '@/components/orga/members/DialogContactNew.vue'
+import DialogContactsAdd from '@/components/orga/members/DialogContactsAdd.vue'
+import DialogContactsReorder from '@/components/orga/members/DialogContactsReorder.vue'
+import DialogContactsDelete from '@/components/orga/members/DialogContactsDelete.vue'
 import ContactCard from '@/components/orga/members/ContactCard.vue'
 
 const route = useRoute()
@@ -304,9 +355,10 @@ const membersStore = useMembersStore()
 const categoriesStore = useCategoriesStore()
 const fieldsStore = useFieldsStore()
 const groupsStore = useGroupsStore()
-const groupMembershipsStore = useGroupMembershipsStore()
+const contactsStore = useContactsStore()
 
 const loading = ref(true)
+const loadingContacts = ref(true)
 
 const member = ref({dummy: ''})
 
@@ -333,27 +385,61 @@ const bankfields = [
   {id: 'MANDATE_DATE', field: 'MANDATE_DATE', name: 'Mandats-Datum', type: 'date'}
 ]
 
+const showDialogContactsAdd = ref(false)
+const showDialogContactsReorder = ref(false)
+const showDialogContactsDelete = ref(false)
+
+const items = ref([
+    { icon: 'mdi-account-plus', title: 'Hinzufügen', action: () => { showDialogContactsAdd.value = true } },
+    { icon: 'mdi-pencil', title: 'Bearbeiten' },
+    { icon: 'mdi-reorder-horizontal', title: 'Neu anordnen', action: () => { showDialogContactsReorder.value = true } },
+    { icon: 'mdi-delete', title: 'Löschen', action: () => { showDialogContactsDelete.value = true } }
+  ]
+)
+
 onMounted(async () => {
+  await loadMember()
+  loading.value = false
+  loadContacts()
+})
+
+const loadMember = async () => {
   const id = route.params.id
   if (membersStore.getByID(id) === undefined) {
     await membersStore.fetchMember(id)
   }
   member.value = membersStore.getByID(id)
-  loading.value = false
-})
+}
+
+const loadContacts = async () => {
+  const id = route.params.id
+  loadingContacts.value = true
+  const contactIDs = membersStore.getByID(id)?.CONTACTS
+  if (contactIDs === undefined) {
+    loadingContacts.value = false
+    return
+  }
+  const promises = []
+  contactIDs.forEach((contactID) => {
+    if (contactsStore.getByID(contactID) === undefined) {
+      promises.push(contactsStore.fetchByID(contactID))
+    }
+  })
+  await Promise.all(promises)
+  loadingContacts.value = false
+}
 
 const goToSettings = () => {
   toast.info('E-Mail-Einstellungen noch nicht implementiert.')
 }
 
 const showAvatar = computed(() => {
-  return member.value?.uid != null && member.value?.uid.length > 0
+  return usersStore.getByID(member.value.USER_ID) !== undefined
 })
 
 const groups = computed(() => {
-  const groupMemberships = groupMembershipsStore.getByMemberID(route.params.id)
-  return groupMemberships.map((groupMembership) => {
-    return groupsStore.getByID(groupMembership.groupID)
+  return member.value?.GROUPS.map((groupID) => {
+    return groupsStore.getByID(groupID)
   }).sort((a, b) => a.ord - b.ord)
 })
 
@@ -363,10 +449,12 @@ const fdate = (date) => {
 }
 
 const reloadMember = async () => {
+  await membersStore.fetchMember(route.params.id)
+  console.log(membersStore.getByID(route.params.id))
   member.value = membersStore.getByID(route.params.id)
 }
 
-const isAdminOrStaFue = computed(() => {
-  return authStore.isAdmin || authStore.isStaFue
+const isAdminOrStafue = computed(() => {
+  return authStore.isAdmin || authStore.isStafue
 })
 </script>

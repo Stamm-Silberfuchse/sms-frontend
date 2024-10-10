@@ -30,7 +30,10 @@
             />
           </v-col>
           <v-col cols="auto" align-self="center" class="pa-0 pl-4">
-            <DialogListEdit :list="currentList" :onEditCallbackFn="onListEditCallback" />
+            <DialogListEdit
+              :list="currentList"
+              @edit="onListEditCallback"
+            />
           </v-col>
           <v-col cols="auto" align-self="center" class="pa-0 pl-4">
             <DialogListDelete :list="currentList" :onDeleteCallbackFn="onDeleteList" />

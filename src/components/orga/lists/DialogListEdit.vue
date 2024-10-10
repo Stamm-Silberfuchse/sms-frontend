@@ -26,7 +26,7 @@
             Liste umbennen
           </v-card-title>
           <v-card-subtitle class="text-wrap">
-            Gib einen neuen Namen für die List '{{ props.list?.name }}' ein.
+            Gib einen neuen Namen für die Liste '{{ props.list?.name }}' ein.
           </v-card-subtitle>
           <v-card-text>
             <v-text-field
@@ -73,6 +73,8 @@ import { useConfirm } from 'vuetify-use-dialog'
 
 import { useMemberListsStore } from '@/store/member_lists'
 
+const emit = defineEmits(['edit'])
+
 const createConfirm = useConfirm()
 
 const memberListsStore = useMemberListsStore()
@@ -80,10 +82,6 @@ const memberListsStore = useMemberListsStore()
 const props = defineProps({
   list: {
     type: Object,
-    required: true,
-  },
-  onEditCallbackFn: {
-    type: Function,
     required: true,
   }
 })

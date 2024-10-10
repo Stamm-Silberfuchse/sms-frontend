@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-app v-if="!loading" id="inspire">
-      <v-app-bar elevation="0">
+      <v-app-bar elevation="0" :class="isStaging ? 'app-bar-bg-staging' : ''">
         <v-app-bar-nav-icon
           v-if="mobileNavigation"
           @click="drawer = !drawer"
@@ -24,6 +24,15 @@
 
         <v-spacer />
 
+        <v-btn
+          v-if="notifications.length > 0"
+          icon
+          class="mr-1"
+        >
+          <v-icon color="primary">
+            mdi-update
+          </v-icon>
+        </v-btn>
         <v-btn
           v-if="notifications.length > 0"
           icon
@@ -96,8 +105,60 @@
             </div>
           </v-list>
 
+          <template v-if="isMinFuehrung">
+            <v-divider />
+            <v-list nav :lines="false">
+              <v-list-subheader>Verwaltung</v-list-subheader>
+              <div v-for="(item, i) in navFuehrungProperties" :key="i">
+
+                <v-list-item
+                  v-if="!item.children"
+                  :to="item.link"
+                  color="primary"
+                >
+                  <template v-slot:prepend>
+                    <v-icon>{{ item.icon }}</v-icon>
+                  </template>
+                  <v-list-item-title v-text="item.title"></v-list-item-title>
+                </v-list-item>
+
+                <v-list-group
+                  v-else
+                  :value="item.title"
+                  no-action
+                  color="primary"
+                >
+                  <template v-slot:activator="{ props }">
+                    <v-list-item
+                      v-bind="props"
+                      :title="item.title"
+                      class="mb-0 py-2"
+                    >
+                      <template v-slot:prepend>
+                        <v-icon>{{ item.icon }}</v-icon>
+                      </template>
+                    </v-list-item>
+                  </template>
+
+                  <v-list-item
+                    v-for="(child, i) in item.children"
+                    :key="i"
+                    :title="child.title"
+                    :prepend-icon="child.icon"
+                    :value="child.title"
+                    :to="child.link"
+                    color="primary"
+                    class="sub-list-item"
+                  ></v-list-item>
+                </v-list-group>
+              </div>
+            </v-list>
+          </template>
+
           <template v-slot:append>
-            <v-list v-if="isAdmin || isStaFue" nav :lines="false">
+            <v-divider />
+            <v-list v-if="isAdmin || isStafue" nav :lines="false">
+              <v-list-subheader>Administration</v-list-subheader>
               <v-list-item
               title="Admin"
                 prepend-icon="mdi-shield-account"
@@ -105,7 +166,7 @@
                 color="primary"
               ></v-list-item>
             </v-list>
-            <v-divider v-if="isAdmin || isStaFue" />
+            <v-divider v-if="isAdmin || isStafue" />
             <v-list nav :lines="false">
               <v-list-item
                 title="Einstellungen"
@@ -151,16 +212,14 @@
         <v-container class="fill-height">
           <v-responsive class="align-center text-center fill-height mx-2">
             <div class="main-div">
-              <v-row justify="center">
-                <v-col cols="6">
-                  <v-progress-linear
-                    color="primary"
-                    indeterminate
-                    rounded
-                    height="6"
-                    style="max-width: 150px;"
-                  />
-                </v-col>
+              <v-row justify="center" class="mb-3">
+                <v-progress-linear
+                  color="primary"
+                  indeterminate
+                  rounded
+                  height="6"
+                  style="max-width: 200px;"
+                />
               </v-row>
             </div>
           </v-responsive>
@@ -183,11 +242,7 @@ import { useUsersStore } from '@/store/users'
 import { useCategoriesStore } from '@/store/categories'
 import { useFieldsStore } from '@/store/fields'
 import { useGroupsStore } from '@/store/groups'
-import { useGroupMembershipsStore } from '@/store/group_memberships'
 import { useMemberListsStore } from '@/store/member_lists'
-
-import { toast } from 'vue3-toastify'
-import 'vue3-toastify/dist/index.css'
 
 import Avatar from '@/components/Avatar.vue'
 
@@ -203,7 +258,6 @@ const usersStore = useUsersStore()
 const categoriesStore = useCategoriesStore()
 const fieldsStore = useFieldsStore()
 const groupsStore = useGroupsStore()
-const groupMembershipsStore = useGroupMembershipsStore()
 const memberListsStore = useMemberListsStore()
 
 const drawer = ref(true)
@@ -223,6 +277,62 @@ const navProperties = ref([
     {
       title: 'Mails',
       icon: 'mdi-email-outline',
+      link: '/mails'
+    },
+    {
+      title: 'Kalender',
+      icon: 'mdi-calendar',
+      children: [
+        {
+          title: 'Übersicht',
+          icon: 'mdi-calendar-month-outline',
+          link: '/calendar/alles'
+        },
+        {
+          title: 'Heimbelegung',
+          icon: 'mdi-home-clock-outline',
+          link: '/calendar/heim'
+        },
+        {
+          title: 'Fahrten & Lager',
+          icon: 'mdi-calendar-star',
+          link: '/calendar/fahrten-lager'
+        },
+        {
+          title: 'Intern',
+          icon: 'mdi-calendar-lock-outline',
+          link: '/calendar/intern'
+        }
+      ]
+    },
+    /*
+    {
+      title: 'Fundsachen',
+      icon: 'mdi-tag-multiple-outline',
+      link: '/lostnfound'
+    },
+    {
+      title: 'Dokumente & Vorlagen',
+      icon: 'mdi-file-document-outline',
+      link: '/docs'
+    },
+    {
+      title: 'ToDos',
+      icon: 'mdi-check-all',
+      link: '/todos'
+    },
+    */
+  ])
+
+  const navFuehrungProperties = ref([
+    {
+      title: 'Dashboard',
+      icon: 'mdi-view-dashboard',
+      link: '/'
+    },
+    {
+      title: 'Mails',
+      icon: 'mdi-email',
       link: '/mails'
     },
     {
@@ -292,11 +402,16 @@ onMounted(async () => {
   onResize()
 
   // load Stores
-  await usersStore.fetchAll()
+  if (authStore.role === 'mitglied') {
+    await usersStore.fetchUser(authStore.uid)
+    // await usersStore.fetchAll(['admin', 'stafue', 'fuehrung'])
+  } else {
+    usersStore.bind()
+  }
+
   await categoriesStore.fetchAll()
   await fieldsStore.fetchAll()
   await groupsStore.fetchAll()
-  await groupMembershipsStore.fetchAll()
   await memberListsStore.fetchAll()
 
   loading.value = false
@@ -318,12 +433,15 @@ const onResize = () => {
   }
 }
 
-const isAdmin = computed(() => {
-  return authStore.isAdmin
-})
+const isAdmin = computed(() => authStore.isAdmin)
+const isStafue = computed(() => authStore.isStafue)
+const isFuehrung = computed(() => authStore.isFuehrung)
+const isMinFuehrung = computed(() => authStore.isMinFuehrung)
+const isMinStafue = computed(() => authStore.isMinStafue)
 
-const isStaFue = computed(() => {
-  return authStore.isStaFue
+
+const isStaging = computed(() => {
+  return import.meta.env.MODE === 'staging'
 })
 
 const logoFile = computed(() => {
@@ -375,7 +493,18 @@ onBeforeUnmount(() => {
 .v-navigation-drawer--rail:not(.v-navigation-drawer--is-hovering.v-navigation-drawer--expand-on-hover) .v-avatar.v-avatar--size-default {
   --v-avatar-height: 24px !important;
 }
+// .v-navigation-drawer--rail .v-avatar.v-avatar--size-default > span {
+//   transition: font 0.2s;
+// }
+.v-navigation-drawer--rail:not(.v-navigation-drawer--is-hovering.v-navigation-drawer--expand-on-hover) .v-avatar.v-avatar--size-default > span {
+  font-size: 12px !important;
+}
 .v-navigation-drawer--rail:not(.v-navigation-drawer--is-hovering.v-navigation-drawer--expand-on-hover) .v-list-item__append {
   visibility: hidden;
 }
+
+.app-bar-bg-staging {
+  background: repeating-linear-gradient(90deg, #3f87a6 0%, #ffce9b 100%) !important;
+}
+
 </style>

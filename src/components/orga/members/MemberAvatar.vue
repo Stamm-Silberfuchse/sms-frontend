@@ -30,10 +30,10 @@
                 </v-btn>
               </template>
               <v-list density="compact">
-                <v-list-item v-if="member['PHOTO_URL']?.length > 0" @click="uploadForm.click()">
+                <v-list-item v-if="photoAvailable" @click="uploadForm.click()">
                   <v-list-item-title>Bild ändern</v-list-item-title>
                 </v-list-item>
-                <v-list-item v-if="member['PHOTO_URL']?.length > 0" @click="onRemovePhoto">
+                <v-list-item v-if="photoAvailable" @click="onRemovePhoto">
                   <v-list-item-title>Bild entfernen</v-list-item-title>
                 </v-list-item>
                 <v-list-item v-else @click="uploadForm.click()">
@@ -119,6 +119,10 @@ const notAvailable = computed(() => {
   return !uploadLoading.value && (member.value['PHOTO_URL']?.length === 0 || false)
 })
 
+const photoAvailable = computed(() => {
+  return !!member.value['PHOTO_URL'] && member.value['PHOTO_URL'].length > 0 && member.value['PHOTO_URL'] !== '/avatar_blank.webp'
+})
+
 const onFileChanged = async () => {
   if(imageFile.value == null) return
   uploadLoading.value = true
@@ -199,7 +203,7 @@ const unbindMember = () => {
 
 const onRemovePhoto = async () => {
   const payload = {
-    PHOTO_URL: '',
+    PHOTO_URL: '/avatar_blank.webp',
   }
   await membersStore.updateMember(props.memberID, payload)
     .catch((error) => {

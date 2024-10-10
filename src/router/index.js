@@ -71,18 +71,11 @@ const routes = [
       },
       {
         path: 'compose',
-        name: 'Mail verfassen',
-        component: () => import('@/views/mails/Compose.vue'),
-      },
-      {
-        path: 'edit',
-        name: 'REDIRECT-mails',
-        redirect: '/mails',
         children: [
           {
-            path: ':id',
-            name: 'Mail bearbeiten',
-            component: () => import('@/views/mails/Edit.vue')
+            path: ':id?',
+            name: 'Mail verfassen',
+            component: () => import('@/views/mails/Compose.vue'),
           }
         ]
       },
@@ -113,6 +106,16 @@ const routes = [
         name: 'Interne Termine',
         component: () => import('@/views/calendar/Intern.vue'),
       },
+      {
+        path: 's',
+        children: [
+          {
+            path: ':id',
+            name: 'Event',
+            component: () => import('@/views/calendar/Event.vue'),
+          }
+        ]
+      }
     ],
   },
   {
@@ -165,11 +168,6 @@ const routes = [
                 path: '',
                 name: 'Mitglied ansehen',
                 component: () => import('@/views/orga/members/member/View.vue'),
-              },
-              {
-                path: 'edit',
-                name: 'Mitglied bearbeiten',
-                component: () => import('@/views/orga/members/member/Edit.vue'),
               },
             ],
           },
@@ -230,7 +228,7 @@ const routes = [
   },
   {
     path: '/admin',
-    meta: { requiresAuth: true, requiresAdminOrStaFue: true },
+    meta: { requiresAuth: true, requiresAdminOrStafue: true },
     component: () => import('@/layouts/Default.vue'),
     children: [
       {
@@ -257,6 +255,16 @@ const routes = [
         path: 'lists',
         name: 'Listenkonfiguration',
         component: () => import('@/views/orga/members/ListConfig.vue'),
+      },
+      {
+        path: 'mails-confirm',
+        children: [
+          {
+            path: ':id',
+            name: 'MailFreigabe',
+            component: () => import('@/views/mails/Freigabe.vue'),
+          }
+        ]
       }
     ],
   },
@@ -276,31 +284,31 @@ const router = createRouter({
 router.beforeResolve(async (to) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
-  const requiresAdminOrStaFue = to.matched.some(record => record.meta.requiresAdminOrStaFue)
+  const requiresAdminOrStafue = to.matched.some(record => record.meta.requiresAdminOrStafue)
+  const requiresAdminOrStafueOrFuehrung = to.matched.some(record => record.meta.requiresAdminOrStafueOrFuehrung)
   if (requiresAuth && !await getCurrentUser()) {
     return {
       path: '/login',
       query: { redirect: to.fullPath },
     }
   }
-  const isAdmin = await auth.currentUser?.getIdTokenResult()
+  const role = await auth.currentUser?.getIdTokenResult()
     .then((idTokenResult) => {
-      return idTokenResult.claims.role === 'admin'
+      return idTokenResult.claims.role
     })
     .catch((error) => {
       console.error(error)
       throw error
     })
-  const isAdminOrStaFue = await auth.currentUser?.getIdTokenResult()
-    .then((idTokenResult) => {
-      return ['admin', 'stafue'].includes(idTokenResult.claims.role)
-    })
-    .catch((error) => {
-      console.error(error)
-      throw error
-    })
+  const isAdmin = ['admin'].includes(role)
+  const isAdminOrStafue = ['admin', 'stafue'].includes(role)
+  const isAdminOrStafueOrFuehrung = ['admin', 'stafue', 'fuehrung'].includes(role)
 
-  if (requiresAdmin && !isAdmin || requiresAdminOrStaFue && !isAdminOrStaFue) {
+  if (
+    requiresAdmin && !isAdmin ||
+    requiresAdminOrStafue && !isAdminOrStafue ||
+    requiresAdminOrStafueOrFuehrung && !isAdminOrStafueOrFuehrung
+  ) {
     return { name: 'No Access' }
   }
 })

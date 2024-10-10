@@ -64,7 +64,7 @@ import 'vue3-toastify/dist/index.css'
 import { useConfirm } from 'vuetify-use-dialog'
 
 import { useGroupsStore } from '@/store/groups'
-import { useGroupMembershipsStore } from '@/store/group_memberships'
+import { useRelGroupsMembersStore } from '@/store/rel_groups_members'
 
 import DraggableCard from '@/components/orga/groups/DraggableCard.vue'
 import DialogGroupEdit from '@/components/orga/groups/DialogGroupEdit.vue'
@@ -87,7 +87,6 @@ const props = defineProps({
 const createConfirm = useConfirm()
 
 const groupsStore = useGroupsStore()
-const groupMembershipsStore = useGroupMembershipsStore()
 
 const onDeleteGroup = async (el) => {
   const isConfirmed = await createConfirm({
@@ -124,7 +123,7 @@ const negativeMargin = (index) => {
 }
 
 const getAmountOfMembers = (groupId) => {
-  return groupMembershipsStore.getByGroupID(groupId)?.length
+  return groupsStore.getAmountOfMembers(groupId)
 }
 </script>
 

@@ -2,31 +2,6 @@
   <v-container>
     <PageTitle title="Mails" />
 
-    <v-row justify="start" class="mx-0 pt-0 px-3 pb-4">
-      <v-btn
-        color="primary"
-        prependIcon="mdi-email-edit-outline"
-        class="mr-4 mb-4 text-none"
-        :to="{ name: 'Mail verfassen' }"
-      >
-        Verfassen
-      </v-btn>
-      <v-btn
-        @click="editLists"
-        prependIcon="mdi-playlist-edit"
-        class="mr-4 mb-4 text-none"
-      >
-        Verteiler bearbeiten
-      </v-btn>
-      <v-btn
-        @click="goToSettings"
-        prependIcon="mdi-cog-outline"
-        class="mr-4 mb-4 text-none"
-      >
-        Einstellungen
-      </v-btn>
-    </v-row>
-
     <v-row class="mt-0 mx-0 px-3 pt-4">
       <v-slide-y-transition
         class="py-0"
@@ -36,7 +11,7 @@
           <v-card
             width="100%"
             class="mb-1 pa-4"
-            @click="router.push({ name: 'Mail bearbeiten', params: { id: email.id } })"
+            @click="previewMail = email; showPreview = true"
           >
             <v-row justify="start">
               <v-col cols="auto">
@@ -52,9 +27,18 @@
                       {{ fdate(email.createdTimestamp) }}
                     </span>
                   </v-card-subtitle>
+                  <v-chip
+                    v-if="email.uploadedFiles?.length > 0"
+                    label
+                    density="compact"
+                    prepend-icon="mdi-paperclip"
+                    class="mt-2"
+                  >
+                    {{ email.uploadedFiles?.length }} Anhänge
+                  </v-chip>
                 </v-card-item>
               </v-col>
-              <v-col cols="auto" class="px-0" align-self="center">
+              <v-col cols="auto" class="px-0" style="margin-top: 3px;">
                 <StatusBadge :email="email" />
               </v-col>
               <v-col cols="auto" class="pl-0">
@@ -67,21 +51,21 @@
                     ></v-btn>
                   </template>
                   <v-list>
-                    <v-list-item>
-                      <v-list-item-title>
-                        Bearbeiten
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="onArchiveMail(email.id)">
-                      <v-list-item-title>
-                        Archivieren
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="onDeleteMail(email.id)">
-                      <v-list-item-title>
-                        Löschen
-                      </v-list-item-title>
-                    </v-list-item>
+                    <v-list-item
+                      title="Bearbeiten"
+                      prepend-icon="mdi-pencil"
+                      @click="router.push({ name: 'Mail verfassen', params: { id: email.id } })"
+                    />
+                    <v-list-item
+                      title="Archivieren"
+                      prepend-icon="mdi-archive"
+                      @click="onArchiveMail(email.id)"
+                    />
+                    <v-list-item
+                      title="Löschen"
+                      prepend-icon="mdi-delete"
+                      @click="onDeleteMail(email.id)"
+                    />
                   </v-list>
                 </v-menu>
               </v-col>
@@ -90,11 +74,17 @@
         </template>
       </v-slide-y-transition>
     </v-row>
+
+    <PreviewEmail
+      :show="showPreview"
+      :mail="previewMail"
+      @close="showPreview = false"
+    />
   </v-container>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
@@ -103,10 +93,12 @@ import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
 import { useMailsStore } from '@/store/mails'
+import { useUsersStore } from '@/store/users'
 
 import PageTitle from '@/components/PageTitle.vue'
 import Avatar from '@/components/Avatar.vue'
 import StatusBadge from '@/components/mails/StatusBadge.vue'
+import PreviewEmail from '@/components/mails/PreviewEmail.vue'
 
 const router = useRouter()
 
@@ -114,9 +106,19 @@ const createConfirm = useConfirm()
 
 const loading = ref(true)
 
-const mailsStore = useMailsStore()
+const previewMail = ref(null)
+const showPreview = ref(false)
 
-onMounted(async () => {
+const showArchived = ref(false)
+const loadingArchived = ref(false)
+
+const mailsStore = useMailsStore()
+const usersStore = useUsersStore()
+
+onBeforeMount(async () => {
+  loading.value = true
+  const members = usersStore.getMe
+  console.log(members)
   await mailsStore.fetchAll()
   loading.value = false
 })
@@ -130,34 +132,31 @@ const goToSettings = () => {
 }
 
 const mails = computed(() => {
-  return mailsStore.getAllSorted
+  return mailsStore.getAllSorted?.filter(mail => {
+    return showArchived.value ? true : mail.status !== 'archived'
+  })
 })
 
 const onArchiveMail = async (id) => {
   const isConfirmed = await createConfirm({
     title: 'Mail archivieren',
-    content: 'Bist Du sicher?',
-    confirmationText: 'Ja',
-    cancellationText: 'Nein',
-    cardProps: {
-      maxWidth: 400,
-      class: "mx-auto w-100"
-    }
+    content: 'Bist Du sicher?'
   })
   if (!isConfirmed) return
-  toast.info('Not implemented yet')
+  await mailsStore.updateMail(id, { status: 'archived' })
+    .then(() => {
+      toast.success('Mail archiviert')
+    })
 }
 
 const onDeleteMail = async (id) => {
+  if (mailsStore.getByID(id).status === 'archived') {
+    toast.error('Archivierte Mails können nicht gelöscht werden')
+    return
+  }
   const isConfirmed = await createConfirm({
     title: 'Mail löschen',
-    content: 'Bist Du sicher?',
-    confirmationText: 'Ja',
-    cancellationText: 'Nein',
-    cardProps: {
-      maxWidth: 400,
-      class: "mx-auto w-100"
-    }
+    content: 'Bist Du sicher?'
   })
   if (!isConfirmed) return
   await mailsStore.deleteMail(id)
@@ -171,6 +170,15 @@ const fdate = (date) => {
     return format(date.toDate(), 'dd.MM.yyyy, HH:mm', {locale: de})
   }
   return ''
+}
+
+const onClickArchived = async () => {
+  if (!loadingArchived.value) {
+    loadingArchived.value = true
+    mailsStore.fetchAll(true)
+    loadingArchived.value = false
+  }
+  showArchived.value = !showArchived.value
 }
 </script>
 

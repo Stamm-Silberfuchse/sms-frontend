@@ -42,7 +42,7 @@ const numberOfMembers = ref(0)
 const fetchData = async () => {
   loading.value = true
   const db = getFirestore()
-  const q = query(collection(db, 'members'), where('status', '==', 'active'))
+  const q = query(collection(db, 'groups'))
   const snapshot = await getCountFromServer(q)
   numberOfMembers.value = snapshot.data().count
   loading.value = false

@@ -4,26 +4,30 @@
       <StatusBadge :email="email" size="default" tooltipLocation="end" />
     </PageTitle>
 
-    <v-row justify="start" class="mx-0 pt-0 px-3 pb-4">
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-send-outline"
-        :loading="sendLoading"
-        :disabled="isDisabled"
-        class="mr-4 mb-4 text-none"
-        @click="onSendMail()"
-      >
-        Senden
-      </v-btn>
-      <v-btn
-        prepend-icon="mdi-content-save-outline"
-        :loading="saveLoading"
-        :disabled="isDisabled"
-        class="mr-4 mb-4 text-none"
-        @click="onSaveMail()"
-      >
-        Speichern
-      </v-btn>
+    <v-row justify="start" class="mx-0 pt-0 px-1 pb-2">
+      <v-col cols="auto" align-self="center" class="pa-2">
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-send-outline"
+          :loading="sendLoading"
+          :disabled="isDisabled"
+          class="mr-4 mb-4 text-none"
+          @click="onSendMail()"
+        >
+          Senden
+        </v-btn>
+      </v-col>
+      <v-col cols="auto" align-self="center" class="pa-2">
+        <v-btn
+          prepend-icon="mdi-content-save-outline"
+          :loading="saveLoading"
+          :disabled="isDisabled"
+          class="mr-4 mb-4 text-none"
+          @click="onSaveMail()"
+        >
+          Speichern
+        </v-btn>
+      </v-col>
     </v-row>
 
     <v-row
@@ -115,7 +119,7 @@ onMounted(async () => {
   const id = route.params.id
   if (mailsStore.getByID(id) === undefined) {
     console.log('Loading mail')
-    await mailsStore.fetchMail(id)
+    await mailsStore.fetchByID(id)
   }
   email.value = mailsStore.getByID(id)
   loading.value = false

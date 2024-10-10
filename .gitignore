@@ -23,7 +23,13 @@ pnpm-debug.log*
 *.sw?
 
 .env
+.env.staging
 
 .firebase/
 emulator-data/
 firebase-export*
+serviceAccountKey.json
+firestore-debug.log
+ui-debug.log
+
+.python-version

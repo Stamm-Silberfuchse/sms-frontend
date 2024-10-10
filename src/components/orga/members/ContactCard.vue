@@ -15,33 +15,27 @@
           <span class="text-subtitle-1 font-weight-regular text-disabled"> ({{ props.contact.relationship }})</span>
         </v-col>
         <v-spacer />
-        <v-col cols="auto" class="pa-0">
-          <v-btn
-            icon
-            size="x-small"
-            variant="flat"
-            @click="onEditContact"
-          >
-            <v-icon size="x-large">
-              mdi-pencil
-            </v-icon>
-          </v-btn>
+        <v-col v-if="isAdminOrStafue" cols="auto" class="pa-0">
+          <!--<DialogContactEdit :memberID="props.member?.id" :contactID="props.contact?.id" />-->
         </v-col>
       </v-row>
-      <div class="mt-3"></div>
+      <div class="mt-1"></div>
       <v-row
         v-for="(field, idx) in props.contact.fields"
-        :key="`contact-field-${idx}`"
+        :key="`contactfield-${idx}`"
         class="mt-0 mb-1 ml-0"
       >
-        <v-col cols="3" class="py-0 pr-0">
+        <v-col cols="3" align-self="center" class="py-0 px-0">
           <v-card-text class="text-body-1 font-weight-bold py-0 pl-0">
             {{ field.name }}:
           </v-card-text>
         </v-col>
-        <v-col cols="9" class="py-1 pl-0">
-          <v-card-text class="text-body-1 py-0" v-html="parseField(field.type, field.value)">
-          </v-card-text>
+        <v-col class="py-1 pl-0" align-self="center">
+          <span class="text-body-1 py-0" v-html="parseField(field?.type, field?.value)">
+          </span>
+        </v-col>
+        <v-col cols="auto" class="py-1" align-self="center">
+          <v-icon color="success" size="small" class="pr-4">mdi-email-check-outline</v-icon>
         </v-col>
       </v-row>
     </v-card-text>
@@ -50,6 +44,13 @@
 
 <script setup>
 import { computed } from 'vue'
+import { parseField } from '@/plugins/sms-helper'
+
+import { useAuthStore } from '@/store/auth'
+
+import DialogContactEdit from '@/components/orga/members/DialogContactEdit.vue'
+
+const authStore = useAuthStore()
 
 const props = defineProps({
   member: {
@@ -60,6 +61,10 @@ const props = defineProps({
     type: Object,
     required: true
   }
+})
+
+const isAdminOrStafue = computed(() => {
+  return authStore.isAdmin || authStore.isStafue
 })
 
 </script>

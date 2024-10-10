@@ -26,7 +26,7 @@ const createList = (tree, groups) => {
   return list
 }
 
-export const useGroupMembershipsStore = defineStore('groupMemberships', {
+export const useRelGroupsMembersStore = defineStore('relGroupsMembersStore', {
   state: () => ({
     all: [],
     groups: [],
@@ -37,12 +37,12 @@ export const useGroupMembershipsStore = defineStore('groupMemberships', {
     getByID: (state) => {
       return (id) => state.all.find((rec) => rec.id === id)
     },
-    getGroupsByMemberID: (state) => {
+    getByMemberID: (state) => {
       return (memberID) => {
-        return createList(useGroupsStore().getTree[0], state.all.filter((rec) => rec.memberID === memberID))
+        return state.all.filter((rec) => rec.memberID === memberID)
       }
     },
-    getMembersByGroupID: (state) => {
+    getByGroupID: (state) => {
       return (groupID) => {
         return state.all.filter((rec) => rec.groupID === groupID)
       }
@@ -51,7 +51,7 @@ export const useGroupMembershipsStore = defineStore('groupMemberships', {
   actions: {
     // Fetch all groups
     async fetchAll() {
-      const col = collection(db, "group_memberships")
+      const col = collection(db, "rel_groups_members")
       const colSnapshot = await getDocs(col)
       this.all = []
       colSnapshot.forEach((doc) => {
@@ -61,7 +61,7 @@ export const useGroupMembershipsStore = defineStore('groupMemberships', {
 
     // Add member to group
     async addMemberToGroup(memberID, groupID) {
-      const colRef = collection(db, "group_memberships")
+      const colRef = collection(db, "rel_groups_members")
       const payload = {
         groupID: groupID,
         memberID: memberID,
@@ -79,7 +79,7 @@ export const useGroupMembershipsStore = defineStore('groupMemberships', {
 
     // Remove member from group
     async removeMemberFromGroup(docID) {
-      const docRef = doc(db, "group_memberships", docID)
+      const docRef = doc(db, "rel_groups_members", docID)
       await deleteDoc(docRef)
         .catch((error) => {
           console.error(error)

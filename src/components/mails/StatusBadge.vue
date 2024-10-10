@@ -40,6 +40,7 @@ const colors = {
   'draft': 'grey',
   'pending': 'warning',
   'sent': 'success',
+  'archived': 'blue',
   'failed': 'error'
 }
 
@@ -47,6 +48,7 @@ const icons = {
   'draft': 'mdi-file-document-edit-outline',
   'pending': 'mdi-clock-outline',
   'sent': 'mdi-check',
+  'archived': 'mdi-archive',
   'failed': 'mdi-alert-circle-outline'
 }
 
@@ -54,6 +56,7 @@ const translations = {
   'draft': 'Entwurf',
   'pending': 'Überprüfung ausstehend',
   'sent': 'Gesendet',
+  'archived': 'Archiviert',
   'failed': 'Fehlgeschlagen'
 }
 </script>
